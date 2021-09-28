@@ -4,12 +4,15 @@
   "description": "backend for AI-Grader",
   "main": "index.js",
   "dependencies": {
+    "debug": "^4.3.2",
     "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
     "multer": "^1.4.3"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard && node test.js",
+    "start": "nodemon app.js"
   },
   "repository": {
     "type": "git",
