@@ -4,6 +4,11 @@ const port = process.env.PORT||3001
 const fileUpload = require('express-fileupload');
 app.use(fileUpload());
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  next()
+})
+
 app.get('/', (req, res)=>{
     res.send(`Working`);
 })
@@ -11,6 +16,7 @@ app.get('/', (req, res)=>{
 app.post('/login', (req, res)=>{
     res.send(`login working!`);
 })
+
 app.post('/upload',(req, res)=>{
     for(let file of Object.values(req.files)) {
         let pathToFile = __dirname + "/uploads/" + file.name;
