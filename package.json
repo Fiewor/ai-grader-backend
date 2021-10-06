@@ -4,8 +4,10 @@
   "description": "backend for AI-Grader",
   "main": "index.js",
   "dependencies": {
+    "@azure/ai-text-analytics": "^5.1.0",
     "@azure/cognitiveservices-computervision": "^8.1.0",
     "async": "^3.2.1",
+    "axios": "^0.22.0",
     "debug": "^4.3.2",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
