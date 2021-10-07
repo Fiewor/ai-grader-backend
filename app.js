@@ -22,115 +22,67 @@ const key = process.env.API_KEY;
 const endpoint = process.env.API_ENDPOINT;
 
 const text_key = process.env.TEXT_KEY;
-const text_endpoint = TEXT_ENDPOINT;
+const text_endpoint = process.env.TEXT_ENDPOINT;
 
 const textAnalyticsClient = new TextAnalyticsClient(text_endpoint,  new AzureKeyCredential(text_key));
 
 const computerVisionClient = new ComputerVisionClient(
     new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': key } }), endpoint);
 
-function computerVision() {
-    async.series([
-        async function () {    
-            const STATUS_SUCCEEDED = "succeeded";
-            const STATUS_FAILED = "failed"
+let textArray = [];
 
-            console.log('-------------------------------------------------');
-            console.log('READ');
-            console.log();
-        
-            const handwrittenImagePath = __dirname + '\\away.jpeg';
-            //try {
-            //    await downloadFilesToLocal(handwrittenTextURL, handwrittenImagePath);
-            //} catch {
-            //    console.log('>>> Download sample file failed. Sample cannot continue');
-            //    process.exit(1);
-            //}
-    
-            // With a local image, get the text.
-            console.log('\Reading local image for text in ...', path.basename(handwrittenImagePath));
-
-            // Call API, returns a Promise<Models.readInStreamResponse>
-            const streamResponse = await computerVisionClient.readInStream(() => createReadStream(handwrittenImagePath))
-                .then((response) => {
-                    return response;
-            });
-
-            console.log();
-            // Get operation location from response, so you can get the operation ID.
-            const operationLocationLocal = streamResponse.operationLocation
-            // Get the operation ID at the end of the URL
-            const operationIdLocal = operationLocationLocal.substring(operationLocationLocal.lastIndexOf('/') + 1);
-            console.log(operationIdLocal)
-
-            let textArray = [];
-
-            // Wait for the read operation to finish, use the operationId to get the result.
-            while (true) {
-                const readOpResult = await computerVisionClient.getReadResult(operationIdLocal)
-                    .then((result) => {
-                        return result;
-                    })
-                console.log('Read status: ' + readOpResult.status)
-                if (readOpResult.status === STATUS_FAILED) {
-                    console.log('The Read File operation has failed.')
-                    break;
-                }
-                if (readOpResult.status === STATUS_SUCCEEDED) {
-                    console.log('The Read File operation was a success.');
-                    console.log();
-                    console.log('Read File local image result:');
-                    // Print the text captured
-
-                    // Looping through: pages of result from readResults[], then Line[]
-                    for (const textRecResult of readOpResult.analyzeResult.readResults) {
-                        for (const line of textRecResult.lines) {
-                            textArray.push(line.text)
-                            // console.log(line.text.join(' '))
-                        }
-                        let string_result = textArray.join(' ')
-                        console.log(string_result)
-                    }
-                    break;
-                }
-                await sleep(1000);
-            }
-            console.log();
-  
-        },
-        function () {
-          return new Promise((resolve) => {
-            resolve();
-          })
-        }
-    ], (err) => {
-            throw (err);
+let getTextFromImage = async (handwrittenImagePath) => {
+    const STATUS_SUCCEEDED = "succeeded";
+    const STATUS_FAILED = "failed"
+    const streamResponse = await computerVisionClient.readInStream(() => createReadStream(handwrittenImagePath))
+        .then((response) => {
+            return response;
         });
+
+    // Get operation location from response, so you can get the operation ID.
+    const operationLocationLocal = streamResponse.operationLocation
+    // Get the operation ID at the end of the URL
+    const operationIdLocal = operationLocationLocal.substring(operationLocationLocal.lastIndexOf('/') + 1);
+
+
+    // Wait for the read operation to finish, use the operationId to get the result.
+    while (true) {
+        const readOpResult = await computerVisionClient.getReadResult(operationIdLocal)
+            .then((result) => {
+                return result;
+            })
+        if (readOpResult.status === STATUS_FAILED) {
+            break;
+        }
+        if (readOpResult.status === STATUS_SUCCEEDED) {
+
+            // Looping through: pages of result from readResults[], then Line[]
+            for (const textRecResult of readOpResult.analyzeResult.readResults) {
+                for (const line of textRecResult.lines) {
+                    textArray.push(line.text)
+                }
+            }
+            break;
+        }
+        await sleep(1000);
+    }
+    return textArray;
 }
 
-computerVision();
+let keyPhraseExtraction = async function(client, completeTxt){
+    const keyPhraseResult = await client.extractKeyPhrases([completeTxt]);
 
-async function keyPhraseExtraction(client){
-
-    const keyPhrasesInput = [
-        ...textArray
-    ];
-    const keyPhraseResult = await client.extractKeyPhrases(keyPhrasesInput);
-    
     keyPhraseResult.forEach(document => {
         console.log(`ID: ${document.id}`);
         console.log(`\tDocument Key Phrases: ${document.keyPhrases}`);
     });
 }
-keyPhraseExtraction(textAnalyticsClient);
 
-// axios.post('https://<your-text-analytics-resource>/text/analytics/v3.1/analyze')
-//     .then(res => console.log(res))
-//     .catch(err => console.log(err))
-
-// axios.get('https://<your-text-analytics-resource>/text/analytics/v3.1/analyze/jobs/<Operation-Location>')
-//     .then(res => console.log(res))
-//     .catch(err => console.log(err))
+getTextFromImage(__dirname + '/away.jpeg')
+    .then((results) => {
+        let completeText = textArray.join(' ')
+        keyPhraseExtraction(textAnalyticsClient, completeText);
+});
 
 app.use(fileUpload());
 
