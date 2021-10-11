@@ -1,4 +1,4 @@
-// 'use strict';
+'use strict';
 
 const express = require('express')
 const app = express()
@@ -56,12 +56,11 @@ app.post('/upload',(req, res)=>{
             }
         });
     }
-
     res.send(`upload working!, check uploads folder in the project`);
 })
 
 app.listen(port, () => {
-    // console.log(`Server is started on port ${port}`);
+    console.log(`Server is started on port ${port}`);
 })
 
 let getTextFromImage = async (imagePath) => {    
@@ -125,13 +124,10 @@ let keyPhraseExtraction = async (client, completeText) => {
 
 let filenames = fs.readdirSync(__dirname + "/uploads/");
 
-let file_name
-
 filenames.forEach((file) => {
-    getTextFromImage(__dirname + `/uploads/` + `/` + `${file}`)
+    getTextFromImage(__dirname + `/uploads//${file}`)
     .then((results) => {
         let completeText = textArray.join(' ')
         keyPhraseExtraction(textAnalyticsClient, completeText);
     });
-    // console.log("File:", file);
 });
