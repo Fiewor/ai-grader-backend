@@ -46,9 +46,9 @@ app.post('/login', (req, res)=>{
     res.send(`login working!`);
 })
 
-app.post('/upload',(req, res)=>{
+app.post('/upload/answer/',(req, res)=>{
     for(let file of Object.values(req.files)) {
-        let pathToFile = __dirname + "/uploads/" + file.name;
+        let pathToFile = __dirname + "/uploads/answer/" + file.name;
 
         file.mv(pathToFile, (err) => {
             if (err) {
@@ -56,7 +56,21 @@ app.post('/upload',(req, res)=>{
             }
         });
     }
-    res.send(`upload working!, check uploads folder in the project`);
+    res.send(`Answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`);
+    // res.send(`upload working!, check uploads folder in the project`);
+})
+
+app.post('/upload/mark/', (req, res)=>{
+    for(let file of Object.values(req.files)) {
+        let pathToFile = __dirname + "/uploads/mark/" + file.name;
+
+        file.mv(pathToFile, (err) => {
+            if (err) {
+                console.log('and error is ', err);
+            }
+        });
+    }
+    res.send(`Marking guide uploaded successfully! Check mark folder in the project's uploads directory`);
 })
 
 app.listen(port, () => {
@@ -122,10 +136,10 @@ let keyPhraseExtraction = async (client, completeText) => {
     });
 }
 
-let filenames = fs.readdirSync(__dirname + "/uploads/");
+let filenames = fs.readdir(__dirname + "/uploads/");
 
 filenames.forEach((file) => {
-    getTextFromImage(__dirname + `/uploads//${file}`)
+    getTextFromImage(__dirname + `/uploads/answer//${file}`)
     .then((results) => {
         let completeText = textArray.join(' ')
         keyPhraseExtraction(textAnalyticsClient, completeText);
