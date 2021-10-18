@@ -4,13 +4,10 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT||3001
 const fileUpload = require('express-fileupload');
-const axios = require('axios')
 
 require('dotenv').config()
 
-const async = require('async');
 const fs = require('fs');
-const https = require('https');
 const path = require("path");
 const createReadStream = fs.createReadStream
 const sleep = require('util').promisify(setTimeout);
@@ -42,10 +39,6 @@ app.get('/', (req, res)=>{
     res.send(`Working`);
 })
 
-app.post('/login', (req, res)=>{
-    res.send(`login working!`);
-})
-
 app.post('/upload/answer/',(req, res)=>{
     for(let file of Object.values(req.files)) {
         let pathToFile = __dirname + "/uploads/answer/" + file.name;
@@ -57,7 +50,6 @@ app.post('/upload/answer/',(req, res)=>{
         });
     }
     res.send(`Answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`);
-    // res.send(`upload working!, check uploads folder in the project`);
 })
 
 app.post('/upload/mark/', (req, res)=>{
@@ -77,6 +69,7 @@ app.listen(port, () => {
     console.log(`Server is started on port ${port}`);
 })
 
+// function to extract identifiable text from image. takes image path as argument
 let getTextFromImage = async (imagePath) => {    
     const STATUS_SUCCEEDED = "succeeded";
     const STATUS_FAILED = "failed"
@@ -125,6 +118,7 @@ let getTextFromImage = async (imagePath) => {
     return textArray
 }
 
+// function to extract key phrases from provided text string
 let keyPhraseExtraction = async (client, completeText) => {
 
     const keyPhrasesInput = [completeText];
@@ -136,12 +130,30 @@ let keyPhraseExtraction = async (client, completeText) => {
     });
 }
 
-let filenames = fs.readdir(__dirname + "/uploads/");
+// read file and extract text from marking guide
+fs.readdir(__dirname + "/uploads/mark", (err, files) => {
+    if (err) console.log(err)
+    
+    files.forEach((file) => {
+        getTextFromImage(__dirname + `/uploads/mark//${file}`)
+        .then((results) => {
+            let completeText = results.join(' ')
+            keyPhraseExtraction(textAnalyticsClient, completeText);
+        })
+        .catch((err) => console.log(err))
+    });
+});
 
-filenames.forEach((file) => {
-    getTextFromImage(__dirname + `/uploads/answer//${file}`)
-    .then((results) => {
-        let completeText = textArray.join(' ')
-        keyPhraseExtraction(textAnalyticsClient, completeText);
+// read file and extract text from answer sheet
+fs.readdir(__dirname + "/uploads/answer", (err, files) => {
+    if (err) console.log(err)
+    
+    files.forEach((file) => {
+        getTextFromImage(__dirname + `/uploads/answer//${file}`)
+        .then((results) => {
+            let completeText = results.join(' ')
+            keyPhraseExtraction(textAnalyticsClient, completeText);
+        })
+        .catch((err) => console.log(err))
     });
 });

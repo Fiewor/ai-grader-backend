@@ -17,7 +17,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "standard && node test.js",
-    "start": "nodemon app.js"
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
