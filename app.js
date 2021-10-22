@@ -137,13 +137,16 @@ fs.readdir(__dirname + "/uploads/mark", (err, files) => {
     files.forEach((file) => {
         getTextFromImage(__dirname + `/uploads/mark//${file}`)
         .then((results) => {
-            let completeText = results.join(' ')
+            let completeText = textArray.join(' ')
             keyPhraseExtraction(textAnalyticsClient, completeText);
+        })
+        .then((data) => {
+            markKeyPhrase = data
         })
         .catch((err) => console.log(err))
     });
 });
-
+let markPhrase, answerKeyPhrase
 // read file and extract text from answer sheet
 fs.readdir(__dirname + "/uploads/answer", (err, files) => {
     if (err) console.log(err)
@@ -151,9 +154,16 @@ fs.readdir(__dirname + "/uploads/answer", (err, files) => {
     files.forEach((file) => {
         getTextFromImage(__dirname + `/uploads/answer//${file}`)
         .then((results) => {
-            let completeText = results.join(' ')
+            let completeText = textArray.join(' ')
             keyPhraseExtraction(textAnalyticsClient, completeText);
+        })
+        .then((data) => {
+            answerKeyPhrase = data
         })
         .catch((err) => console.log(err))
     });
 });
+
+// console.log(markKeyPhrase)
+// console.log(answerKeyPhrase)
+// some code to compare markKeyPhrase and answerKeyPhrase
