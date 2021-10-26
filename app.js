@@ -129,6 +129,7 @@ let keyPhraseExtraction = async (client, completeText) => {
         console.log(`\tDocument Key Phrases: ${document.keyPhrases}`);
     });
 }
+let markKeyPhrase, answerKeyPhrase
 
 // read file and extract text from marking guide
 fs.readdir(__dirname + "/uploads/mark", (err, files) => {
@@ -142,11 +143,12 @@ fs.readdir(__dirname + "/uploads/mark", (err, files) => {
         })
         .then((data) => {
             markKeyPhrase = data
+            console.log(`marking keyphrase: ${markKeyPhrase}`)
         })
         .catch((err) => console.log(err))
     });
 });
-let markPhrase, answerKeyPhrase
+
 // read file and extract text from answer sheet
 fs.readdir(__dirname + "/uploads/answer", (err, files) => {
     if (err) console.log(err)
@@ -159,11 +161,25 @@ fs.readdir(__dirname + "/uploads/answer", (err, files) => {
         })
         .then((data) => {
             answerKeyPhrase = data
+            console.log(`answer keyphrase: ${answerKeyPhrase}`)
         })
         .catch((err) => console.log(err))
     });
 });
 
-// console.log(markKeyPhrase)
-// console.log(answerKeyPhrase)
 // some code to compare markKeyPhrase and answerKeyPhrase
+
+// database code
+const mongoose = require('mongoose')
+mongoose.connect("mongodb://localhost:27017/textExtract")
+const textSchema = new mongoose.Schema({
+    readText: String,
+    keyPhrases: String
+})
+const Text = mongoose.model('Text', textSchema)
+
+const text = new Text({
+    readText: completeText,
+    keyPhrases: answerKeyPhrase
+})
+text.save()
