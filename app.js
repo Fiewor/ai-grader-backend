@@ -108,8 +108,8 @@ let getTextFromImage = async (imagePath) => {
                 for (const line of textRecResult.lines) {
                     textArray.push(line.text)
                 }
-                let completeText = textArray.join(' ')
-                console.log(completeText)
+                var completeText = textArray.join(' ')
+                console.log(`Printing captured text from getTextFromImage function: ${completeText}`)
             }
             break;
         }
@@ -117,20 +117,24 @@ let getTextFromImage = async (imagePath) => {
     }
     return textArray
 }
-
+let extracted = []
 // function to extract key phrases from provided text string
-let keyPhraseExtraction = async (client, completeText) => {
-
-    const keyPhrasesInput = [completeText];
-    const keyPhraseResult = await client.extractKeyPhrases(keyPhrasesInput);
+let keyPhraseExtraction = async (client, keyPhrasesInput) => {
+    try {
+        const keyPhraseResult = await client.extractKeyPhrases(keyPhrasesInput);
     
-    keyPhraseResult.forEach(document => {
-        console.log(`ID: ${document.id}`);
-        console.log(`\tDocument Key Phrases: ${document.keyPhrases}`);
-    });
+        keyPhraseResult.forEach(document => {
+            console.log(`ID: ${document.id}`);
+            console.log(`\tDocument Key Phrases: ${document.keyPhrases}`);
+            extracted.push(document.keyPhrases)
+        });
+    } catch(e) {
+        console.log(e);
+    }
+    return extracted
 }
-let markKeyPhrase, answerKeyPhrase
-
+// console.log(`result of keyphraseextraction function: ${extracted}`)
+let markKeyPhrase
 // read file and extract text from marking guide
 fs.readdir(__dirname + "/uploads/mark", (err, files) => {
     if (err) console.log(err)
@@ -138,15 +142,14 @@ fs.readdir(__dirname + "/uploads/mark", (err, files) => {
     files.forEach((file) => {
         getTextFromImage(__dirname + `/uploads/mark//${file}`)
         .then((results) => {
-            let completeText = textArray.join(' ')
-            keyPhraseExtraction(textAnalyticsClient, completeText);
+            return keyPhraseExtraction(textAnalyticsClient, results);
         })
         .then((data) => {
             markKeyPhrase = data
-            console.log(`marking keyphrase: ${markKeyPhrase}`)
         })
         .catch((err) => console.log(err))
     });
+    // return markKeyPhrase
 });
 
 // read file and extract text from answer sheet
@@ -156,8 +159,7 @@ fs.readdir(__dirname + "/uploads/answer", (err, files) => {
     files.forEach((file) => {
         getTextFromImage(__dirname + `/uploads/answer//${file}`)
         .then((results) => {
-            let completeText = textArray.join(' ')
-            keyPhraseExtraction(textAnalyticsClient, completeText);
+            return keyPhraseExtraction(textAnalyticsClient, results);
         })
         .then((data) => {
             answerKeyPhrase = data
@@ -168,18 +170,3 @@ fs.readdir(__dirname + "/uploads/answer", (err, files) => {
 });
 
 // some code to compare markKeyPhrase and answerKeyPhrase
-
-// database code
-const mongoose = require('mongoose')
-mongoose.connect("mongodb://localhost:27017/textExtract")
-const textSchema = new mongoose.Schema({
-    readText: String,
-    keyPhrases: String
-})
-const Text = mongoose.model('Text', textSchema)
-
-const text = new Text({
-    readText: completeText,
-    keyPhrases: answerKeyPhrase
-})
-text.save()
