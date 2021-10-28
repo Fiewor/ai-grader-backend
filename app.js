@@ -38,32 +38,23 @@ app.use((req, res, next) => {
 app.get('/', (req, res)=>{
     res.send(`Working`);
 })
+// post handler
+const postHandler = folder => {
+    app.post(`/upload/${folder}/`,(req, res)=>{
+        for(let file of Object.values(req.files)) {
+            let pathToFile = `__dirname/uploads/${folder}/` + file.name;
 
-app.post('/upload/answer/',(req, res)=>{
-    for(let file of Object.values(req.files)) {
-        let pathToFile = __dirname + "/uploads/answer/" + file.name;
-
-        file.mv(pathToFile, (err) => {
-            if (err) {
-                console.log('and error is ', err);
-            }
-        });
-    }
-    res.send(`Answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`);
-})
-
-app.post('/upload/mark/', (req, res)=>{
-    for(let file of Object.values(req.files)) {
-        let pathToFile = __dirname + "/uploads/mark/" + file.name;
-
-        file.mv(pathToFile, (err) => {
-            if (err) {
-                console.log('and error is ', err);
-            }
-        });
-    }
-    res.send(`Marking guide uploaded successfully! Check mark folder in the project's uploads directory`);
-})
+            file.mv(pathToFile, (err) => {
+                if (err) {
+                    console.log('and error is ', err);
+                }
+            });
+        }
+        res.send(`${folder} sheet(s) uploaded successfully! Check ${folder} folder in the project's uploads directory`);
+    })
+}
+postHandler(`answer`)
+postHandler(`mark`)
 
 app.listen(port, () => {
     console.log(`Server is started on port ${port}`);
@@ -134,39 +125,53 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
     return extracted
 }
 // console.log(`result of keyphraseextraction function: ${extracted}`)
-let markKeyPhrase
-// read file and extract text from marking guide
-fs.readdir(__dirname + "/uploads/mark", (err, files) => {
-    if (err) console.log(err)
-    
-    files.forEach((file) => {
-        getTextFromImage(__dirname + `/uploads/mark//${file}`)
-        .then((results) => {
-            return keyPhraseExtraction(textAnalyticsClient, results);
-        })
-        .then((data) => {
-            markKeyPhrase = data
-        })
-        .catch((err) => console.log(err))
+let markKeyPhrase, answerKeyPhrase
+const readOperation = path => {
+    fs.readdir(path, (err, files) => {
+        if (err) console.log(err)
+        
+        files.forEach((file) => {
+            getTextFromImage(`${__dirname}/uploads/mark//${file}`)
+            .then((results) => {
+                return keyPhraseExtraction(textAnalyticsClient, results);
+            })
+            .then((data) => {
+                markKeyPhrase = data
+                // console.log(`markKeyPhrase: ${markKeyPhrase}`)
+            })
+            .catch((err) => console.log(err))
+        });
+        return markKeyPhrase
     });
-    // return markKeyPhrase
-});
+}
+// read file and extract text from marking guide
+readOperation(`${__dirname}\\uploads\\mark`)
+.then(data => console.log("result of read operation",data))
+.catch((err) => console.log(err))
 
 // read file and extract text from answer sheet
-fs.readdir(__dirname + "/uploads/answer", (err, files) => {
-    if (err) console.log(err)
-    
-    files.forEach((file) => {
-        getTextFromImage(__dirname + `/uploads/answer//${file}`)
-        .then((results) => {
-            return keyPhraseExtraction(textAnalyticsClient, results);
-        })
-        .then((data) => {
-            answerKeyPhrase = data
-            console.log(`answer keyphrase: ${answerKeyPhrase}`)
-        })
-        .catch((err) => console.log(err))
-    });
-});
 
 // some code to compare markKeyPhrase and answerKeyPhrase
+// let grade = 0
+// const grader = (array1, array2) => 
+    // for (let i = 0; i <= array1.length) {
+        // if(array1[i] === array2[i]) {
+        //     grade += 1
+    // }
+// }
+// grader(markKeyPhrase, answerKeyPhrase)
+
+// database code
+// const mongoose = require('mongoose')
+// mongoose.connect("mongodb://localhost:27017/textExtract")
+// const textSchema = new mongoose.Schema({
+//     readText: String,
+//     keyPhrases: String
+// })
+// const Text = mongoose.model('Text', textSchema)
+
+// const text = new Text({
+//     readText: completeText,
+//     keyPhrases: answerKeyPhrase
+// })
+// text.save()
