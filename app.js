@@ -35,14 +35,14 @@ app.use((req, res, next) => {
   next()
 })
 
-app.get('/', (req, res)=>{
-    res.send(`Working`);
-})
+// app.get('/', (req, res)=>{
+//     res.send(`Working`);
+// })
 // post handler
 const postHandler = folder => {
     app.post(`/upload/${folder}/`,(req, res)=>{
         for(let file of Object.values(req.files)) {
-            let pathToFile = `__dirname/uploads/${folder}/` + file.name;
+            let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
 
             file.mv(pathToFile, (err) => {
                 if (err) {
@@ -68,9 +68,7 @@ let getTextFromImage = async (imagePath) => {
     console.log('\Reading local image for text in ...', path.basename(imagePath));
     
     const streamResponse = await computerVisionClient.readInStream(() => createReadStream(imagePath))
-        .then((response) => {
-            return response;
-        })
+        .then(response => response)
         .catch(err => console.error(err))
 
     // Get operation location from response, so you can get the operation ID.
@@ -99,7 +97,7 @@ let getTextFromImage = async (imagePath) => {
                 for (const line of textRecResult.lines) {
                     textArray.push(line.text)
                 }
-                var completeText = textArray.join(' ')
+                let completeText = textArray.join(' ')
                 console.log(`Printing captured text from getTextFromImage function: ${completeText}`)
             }
             break;
@@ -108,6 +106,14 @@ let getTextFromImage = async (imagePath) => {
     }
     return textArray
 }
+
+app.get(`http://localhost:3001/upload/mark`, (req, res) => {
+    // read file and extract text from marking guide
+    res.send(readOperation(`${__dirname}\\uploads\\mark`))
+    // .then(data => console.log("result of read operation",data))
+    // .catch((err) => console.log(err))
+})
+
 let extracted = []
 // function to extract key phrases from provided text string
 let keyPhraseExtraction = async (client, keyPhrasesInput) => {
@@ -124,7 +130,7 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
     }
     return extracted
 }
-// console.log(`result of keyphraseextraction function: ${extracted}`)
+
 let markKeyPhrase, answerKeyPhrase
 const readOperation = path => {
     fs.readdir(path, (err, files) => {
@@ -144,21 +150,19 @@ const readOperation = path => {
         return markKeyPhrase
     });
 }
-// read file and extract text from marking guide
-readOperation(`${__dirname}\\uploads\\mark`)
-.then(data => console.log("result of read operation",data))
-.catch((err) => console.log(err))
+
 
 // read file and extract text from answer sheet
+// readOperation(`${__dirname}\\uploads\\answer`)
+//  .......
 
 // some code to compare markKeyPhrase and answerKeyPhrase
-// let grade = 0
-// const grader = (array1, array2) => 
-    // for (let i = 0; i <= array1.length) {
-        // if(array1[i] === array2[i]) {
-        //     grade += 1
-    // }
-// }
+let grade = 0
+const grader = (array1, array2) => {
+    for (let i = 0; i <= array1.length; i++) {
+        if(array1[i] === array2[i]) grade += 1
+    }
+}
 // grader(markKeyPhrase, answerKeyPhrase)
 
 // database code
