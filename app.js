@@ -153,7 +153,7 @@ const readOperation = path => {
 
 
 // read file and extract text from answer sheet
-// readOperation(`${__dirname}\\uploads\\answer`)
+readOperation(`${__dirname}\\uploads\\answer`)
 //  .......
 
 // some code to compare markKeyPhrase and answerKeyPhrase
