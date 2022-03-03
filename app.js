@@ -81,7 +81,7 @@ let getTextFromImage = async (imagePath) => {
   const STATUS_SUCCEEDED = "succeeded";
   const STATUS_FAILED = "failed";
 
-  console.log("Reading local image for text in ...", path.basename(imagePath));
+  console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
 
   const streamResponse = await computerVisionClient
     .readInStream(() => createReadStream(imagePath))
@@ -150,14 +150,14 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
   }
   return extracted;
 };
-
 let markKeyPhrase, answerKeyPhrase;
 const readOperation = async (path) => {
   fs.readdir(path, (err, files) => {
     if (err) console.log(err);
 
+    // let localPath = __dirname.replace(/\\/g, `/`);
     files.forEach((file) => {
-      getTextFromImage(`${__dirname}/uploads/mark//${file}`)
+      getTextFromImage(`${__dirname}\\uploads\\answer\\${file}`)
         .then((results) => {
           return keyPhraseExtraction(textAnalyticsClient, results);
         })
