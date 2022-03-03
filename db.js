@@ -23,8 +23,7 @@ async function main() {
 
 // using Mongo Atlas
 const { MongoClient, ServerApiVersion } = require("mongodb");
-const uri =
-  "mongodb+srv://john:fiewor@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority";
+const uri = `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
