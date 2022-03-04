@@ -1,24 +1,24 @@
 // using local Mongo server
 const mongoose = require("mongoose");
-async function main() {
+module.exports = async function main(value) {
   await mongoose.connect("mongodb://localhost:27017/textExtract");
 
   const textSchema = new mongoose.Schema({
-    readText: String,
+    // readText: String,
     keyPhrases: String,
   });
   const Text = mongoose.model("Text", textSchema);
 
   const text = new Text({
-    readText: completeText,
-    keyPhrases: markKeyPhrase,
+    // readText: completeText,
+    keyPhrases: value,
   });
 
   await text.save();
 
   const result = Text.findOne();
   console.log("saved data", result);
-}
+};
 // main()
 
 // using Mongo Atlas
@@ -62,7 +62,7 @@ async function run() {
 // run().catch(console.dir);
 
 // for local mongodb server
-export default main;
+// export default main;
 
 // for atlas
 // export default run

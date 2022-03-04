@@ -34,9 +34,10 @@ const computerVisionClient = new ComputerVisionClient(
   new ApiKeyCredentials({ inHeader: { "Ocp-Apim-Subscription-Key": key } }),
   endpoint
 );
+const mongoose = require("mongoose");
+mongoose.connect("mongodb://localhost:27017/textExtract");
 
-// import grader from "./grading";
-// import main from "./db";
+const Text = require("./Text");
 
 let textArray = [];
 
@@ -90,7 +91,6 @@ let getTextFromImage = async (imagePath) => {
 
   // Get operation location from response, so you can get the operation ID.
   const operationLocationLocal = streamResponse.operationLocation;
-  console.log("operationLocationLocal", operationLocationLocal);
   // Get the operation ID at the end of the URL
   const operationIdLocal = operationLocationLocal.substring(
     operationLocationLocal.lastIndexOf("/") + 1
@@ -116,9 +116,7 @@ let getTextFromImage = async (imagePath) => {
           textArray.push(line.text);
         }
         completeText = textArray.join(" ");
-        console.log(
-          `Printing captured text from getTextFromImage function: ${completeText}`
-        );
+        console.log(completeText);
       }
       break;
     }
@@ -151,6 +149,7 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
   return extracted;
 };
 let markKeyPhrase, answerKeyPhrase;
+
 const readOperation = async (path) => {
   fs.readdir(path, (err, files) => {
     if (err) console.log(err);
@@ -165,18 +164,58 @@ const readOperation = async (path) => {
           markKeyPhrase = data;
           // console.log(`markKeyPhrase: ${markKeyPhrase}`)
         })
+        .then(() => {
+          const db = async () => {
+            try {
+              const text = new Text({
+                readText: completeText,
+                keyPhrases: markKeyPhrase,
+              });
+              // const text = new Text(completeText);
+              await text.save();
+
+              console.log("saved data: ", text);
+            } catch (e) {
+              console.log(e.message);
+            }
+          };
+          db();
+        })
         .catch((err) => console.log(err));
     });
+
+    // Text.deleteMany({});
+    // let output = await db.text.find(); <- only works in mongosh
+    // console.log("output:", output);
+    // }
+    // db(markKeyPhrase);
+
     return markKeyPhrase;
   });
 };
 
 // read file and extract text from answer sheet
 readOperation(`${__dirname}\\uploads\\answer`);
+// .then((value) => main(value));
 //  .......
+
+// db code
+// using local MongoDB server
+// async function main(value) {
+// await mongoose.connect("mongodb://localhost:27017/textExtract");
+
+// const textSchema = new mongoose.Schema({
+//   // readText: String,
+//   keyPhrases: mongoose.Mixed,
+// });
+// const Text = mongoose.model("Text", textSchema);
+
+// const text = new Text({
+//   // readText: completeText,
+//   keyPhrases: value,
+// });
+
+// }
 
 // grading code
 // grader(markKeyPhrase, answerKeyPhrase);
-
-// db code
-// main();
