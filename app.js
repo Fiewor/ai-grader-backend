@@ -148,7 +148,7 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
   }
   return extracted;
 };
-let markKeyPhrase, answerKeyPhrase;
+let markKeyPhrase, answerKeyPhrase, result;
 
 const readOperation = async (path) => {
   fs.readdir(path, (err, files) => {
@@ -163,15 +163,15 @@ const readOperation = async (path) => {
         .then((data) => {
           markKeyPhrase = data;
           // console.log(`markKeyPhrase: ${markKeyPhrase}`)
+          // result = markKeyPhrase[0]
         })
         .then(() => {
           const db = async () => {
             try {
               const text = new Text({
                 readText: completeText,
-                keyPhrases: markKeyPhrase,
               });
-              // const text = new Text(completeText);
+              text.keyPhrases.push(...markKeyPhrase[0]); // ! TODO: fix to push all key phrases, not just the first
               await text.save();
 
               console.log("saved data: ", text);

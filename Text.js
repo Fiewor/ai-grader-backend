@@ -8,7 +8,7 @@ const textSchema = new mongoose.Schema({
   //       uppercase: true,
   // immutable: true
   //     },
-  //   keyPhrases: [String],
+  keyPhrases: [],
   //   id: mongoose.SchemaTypes.ObjectId
 });
 
