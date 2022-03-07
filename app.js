@@ -48,10 +48,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.get('/', (req, res)=>{
-//     res.send(`Working`);
-// })
-
 // post handler
 const postHandler = async (folder) => {
   app.post(`/upload/${folder}/`, (req, res) => {
@@ -125,9 +121,33 @@ let getTextFromImage = async (imagePath) => {
   return textArray;
 };
 
-app.get(`http://localhost:3001/upload/mark`, (req, res) => {
+app.get(`/viewText`, async (req, res) => {
   // read file and extract text from marking guide
-  res.send(readOperation(`${__dirname}\\uploads\\mark`));
+  // res.send(readOperation(`${__dirname}\\uploads\\mark`));
+  // res.send("backend connected!");
+  // display saved text from database
+  // Text.find((err, result) => {
+  //   if (err) console.log("Found some error" + err);
+  //   else res.send(result);
+  // });
+
+  try {
+    const result = await Text.find();
+    res.send(result);
+    // return res.status(200).json({
+    //   success: true,
+    //   data: result,
+    // });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "server error" });
+  }
+
+  // async () => {
+  // await text.save();
+  // res.send(text);
+  // console.log("saved data: ", text);
+  // };
   // .then(data => console.log("result of read operation",data))
   // .catch((err) => console.log(err))
 });
@@ -148,7 +168,7 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
   }
   return extracted;
 };
-let markKeyPhrase, answerKeyPhrase;
+let markKeyPhrase, answerKeyPhrase, result;
 
 const readOperation = async (path) => {
   fs.readdir(path, (err, files) => {
@@ -163,15 +183,15 @@ const readOperation = async (path) => {
         .then((data) => {
           markKeyPhrase = data;
           // console.log(`markKeyPhrase: ${markKeyPhrase}`)
+          // result = markKeyPhrase[0]
         })
         .then(() => {
           const db = async () => {
             try {
               const text = new Text({
                 readText: completeText,
-                keyPhrases: markKeyPhrase,
               });
-              // const text = new Text(completeText);
+              text.keyPhrases.push(...markKeyPhrase[0]); // ! TODO: fix to push all key phrases, not just the first
               await text.save();
 
               console.log("saved data: ", text);
@@ -184,12 +204,6 @@ const readOperation = async (path) => {
         .catch((err) => console.log(err));
     });
 
-    // Text.deleteMany({});
-    // let output = await db.text.find(); <- only works in mongosh
-    // console.log("output:", output);
-    // }
-    // db(markKeyPhrase);
-
     return markKeyPhrase;
   });
 };
@@ -198,24 +212,6 @@ const readOperation = async (path) => {
 readOperation(`${__dirname}\\uploads\\answer`);
 // .then((value) => main(value));
 //  .......
-
-// db code
-// using local MongoDB server
-// async function main(value) {
-// await mongoose.connect("mongodb://localhost:27017/textExtract");
-
-// const textSchema = new mongoose.Schema({
-//   // readText: String,
-//   keyPhrases: mongoose.Mixed,
-// });
-// const Text = mongoose.model("Text", textSchema);
-
-// const text = new Text({
-//   // readText: completeText,
-//   keyPhrases: value,
-// });
-
-// }
 
 // grading code
 // grader(markKeyPhrase, answerKeyPhrase);
