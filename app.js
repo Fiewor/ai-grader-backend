@@ -49,24 +49,51 @@ app.use((req, res, next) => {
 });
 
 // post handler
-const postHandler = async (folder) => {
-  app.post(`/upload/${folder}/`, (req, res) => {
-    for (let file of Object.values(req.files)) {
-      let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
 
-      file.mv(pathToFile, (err) => {
-        if (err) {
-          console.log("and error is ", err);
-        }
-      });
-    }
-    res.send(
-      `${folder} sheet(s) uploaded successfully! Check ${folder} folder in the project's uploads directory`
-    );
-  });
-};
-postHandler(`answer`);
-postHandler(`mark`);
+app.post(`/upload/mark/`, (req, res) => {
+  for (let file of Object.values(req.files)) {
+    let pathToFile = `${__dirname}/uploads/mark/` + file.name;
+
+    file.mv(pathToFile, (err) => {
+      if (err) {
+        console.log("and error is ", err);
+      }
+    });
+  }
+  // postHandler(req, mark);
+  res.send(
+    `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
+  );
+});
+
+app.post(`/upload/answer/`, (req, res) => {
+  for (let file of Object.values(req.files)) {
+    let pathToFile = `${__dirname}/uploads/answer/` + file.name;
+
+    file.mv(pathToFile, (err) => {
+      if (err) {
+        console.log("and error is ", err);
+      }
+    });
+  }
+  // postHandler(req, answer);
+  res.send(
+    `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
+  );
+});
+
+// ! TO-DO: fix this to use to handle post requests
+// const postHandler = async (req, folder) => {
+//   for (let file of Object.values(req.files)) {
+//     let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
+
+//     file.mv(pathToFile, (err) => {
+//       if (err) {
+//         console.log("and error is ", err);
+//       }
+//     });
+//   }
+// };
 
 app.listen(port, () => {
   console.log(`Server is started on port ${port}`);
@@ -122,34 +149,14 @@ let getTextFromImage = async (imagePath) => {
 };
 
 app.get(`/viewText`, async (req, res) => {
-  // read file and extract text from marking guide
-  // res.send(readOperation(`${__dirname}\\uploads\\mark`));
-  // res.send("backend connected!");
-  // display saved text from database
-  // Text.find((err, result) => {
-  //   if (err) console.log("Found some error" + err);
-  //   else res.send(result);
-  // });
-
   try {
+    // read file and extract text from answer sheet
+    readOperation(`${__dirname}\\uploads\\answer`);
     const result = await Text.find();
     res.send(result);
-    // return res.status(200).json({
-    //   success: true,
-    //   data: result,
-    // });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ error: "server error" });
   }
-
-  // async () => {
-  // await text.save();
-  // res.send(text);
-  // console.log("saved data: ", text);
-  // };
-  // .then(data => console.log("result of read operation",data))
-  // .catch((err) => console.log(err))
 });
 
 let extracted = [];
@@ -168,13 +175,12 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
   }
   return extracted;
 };
-let markKeyPhrase, answerKeyPhrase, result;
+let markKeyPhrase, answerKeyPhrase;
 
 const readOperation = async (path) => {
   fs.readdir(path, (err, files) => {
     if (err) console.log(err);
 
-    // let localPath = __dirname.replace(/\\/g, `/`);
     files.forEach((file) => {
       getTextFromImage(`${__dirname}\\uploads\\answer\\${file}`)
         .then((results) => {
@@ -183,7 +189,6 @@ const readOperation = async (path) => {
         .then((data) => {
           markKeyPhrase = data;
           // console.log(`markKeyPhrase: ${markKeyPhrase}`)
-          // result = markKeyPhrase[0]
         })
         .then(() => {
           const db = async () => {
@@ -207,11 +212,6 @@ const readOperation = async (path) => {
     return markKeyPhrase;
   });
 };
-
-// read file and extract text from answer sheet
-readOperation(`${__dirname}\\uploads\\answer`);
-// .then((value) => main(value));
-//  .......
 
 // grading code
 // grader(markKeyPhrase, answerKeyPhrase);
