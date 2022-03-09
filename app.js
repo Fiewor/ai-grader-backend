@@ -87,7 +87,6 @@ app.get(`/viewText`, async (req, res) => {
   }
 });
 
-// ! TO-DO: fix this to use to handle post requests
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
     let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
@@ -180,23 +179,6 @@ const readOperation = async (path) => {
           // ${file}KeyPhrase = data;
           // console.log(`markKeyPhrase: ${markKeyPhrase}`)
         })
-        // .then(() => {
-        // ! isolate this db function!
-        //   const db = async () => {
-        //     try {
-        //       const text = new Text({
-        //         readText: completeText,
-        //       });
-        //       text.keyPhrases.push(...markKeyPhrase[0]); // ! TODO: fix to push all key phrases, not just the first
-        //       await text.save();
-
-        //       console.log("saved data: ", text);
-        //     } catch (e) {
-        //       console.log(e.message);
-        //     }
-        //   };
-        //   db();
-        // })
         .catch((err) => console.log(err));
     });
 
