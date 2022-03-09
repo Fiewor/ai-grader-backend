@@ -52,9 +52,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// post handler
-
 app.post(`/upload/mark/`, (req, res) => {
+  if (req.files === null || undefined) {
+    res.json({ noFile: true });
+    return;
+  }
   postHandler(req, "mark");
   res.send(
     `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
@@ -62,6 +64,10 @@ app.post(`/upload/mark/`, (req, res) => {
 });
 
 app.post(`/upload/answer/`, (req, res) => {
+  if (req.files === null || undefined) {
+    res.json({ noFile: true });
+    return;
+  }
   postHandler(req, answer);
   res.send(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
