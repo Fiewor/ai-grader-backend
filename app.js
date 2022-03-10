@@ -68,7 +68,7 @@ app.post(`/upload/answer/`, (req, res) => {
     res.json({ noFile: true });
     return;
   }
-  postHandler(req, answer);
+  postHandler(req, "answer");
   res.send(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
   );
@@ -78,12 +78,12 @@ app.get(`/viewText`, async (req, res) => {
   try {
     // read file and extract text from answer sheet
     readOperation(`${__dirname}\\uploads\\answer`).then(() =>
-      db("answerText", answerKeyPhrase)
+      db("answerText", "answerKeyPhrase")
     );
 
     // read file and extract text from mark sheet
     readOperation(`${__dirname}\\uploads\\mark`).then(() =>
-      db("markText", markKeyPhrase)
+      db("markText", "markKeyPhrase")
     );
 
     const result = await Text.find();
@@ -189,18 +189,21 @@ const readOperation = async (path) => {
     });
 
     return markKeyPhrase;
+    // ! TO-DO: implement logic that only executes this once for each document
   });
 };
 
 const db = async (newDoc, keyPh) => {
+  console.log("newDoc", newDoc);
+  console.log("keyPh", keyPh);
   try {
-    const { newDoc } = new Text({
+    newDoc = new Text({
       readText: completeText,
     });
-    `${newDoc}`.keyPhrases.push(...`${keyPh}`[0]);
-    await `${newDoc}`.save();
+    newDoc.keyPhrases.push(...keyPh[0]);
+    await newDoc.save();
 
-    console.log("saved data: ", `${newDoc}`);
+    console.log("saved data: ", newDoc);
   } catch (e) {
     console.log(e.message);
   }
