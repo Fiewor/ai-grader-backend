@@ -34,10 +34,16 @@ const computerVisionClient = new ComputerVisionClient(
   new ApiKeyCredentials({ inHeader: { "Ocp-Apim-Subscription-Key": key } }),
   endpoint
 );
-const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/textExtract");
 
-const Text = require("./Text");
+// using Mongo Atlas
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri = `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
+const dbName = "textExtract";
 
 let textArray = [];
 
@@ -74,25 +80,22 @@ app.post(`/upload/answer/`, (req, res) => {
   );
 });
 
+let viewArr = [];
 app.get(`/viewText`, async (req, res) => {
   try {
     // read file and extract text from answer sheet
-    readOperation(`${__dirname}\\uploads\\answer`);
-    // .then(() =>
-    //   db("answerText", "answerKeyPhrase")
-    // );
+    readOperation(`${__dirname}\\uploads\\answer`).then(async (data) => {
+      viewArr.push(data);
+    });
 
     // read file and extract text from mark sheet
-    readOperation(`${__dirname}\\uploads\\mark`);
-    // .then(() =>
-    //   db("markText", "markKeyPhrase")
-    // );
-
-    const result = await Text.find();
-    res.send(result);
+    readOperation(`${__dirname}\\uploads\\mark`).then((data) => {
+      viewArr.push(data);
+    });
   } catch (err) {
     console.log(err);
   }
+  res.send(viewArr);
 });
 
 const postHandler = async (req, folder) => {
@@ -172,7 +175,7 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
   }
   return extracted;
 };
-let markKeyPhrase, answerKeyPhrase;
+let markKeyPhrase, answerKeyPhrase, myDoc;
 
 const readOperation = async (path) => {
   fs.readdir(path, (err, files) => {
@@ -185,47 +188,42 @@ const readOperation = async (path) => {
         })
         .then((data) => {
           markKeyPhrase = data;
-          answerKeyPhrase = data;
-          // console.log(`markKeyPhrase: ${markKeyPhrase}`)
+          // answerKeyPhrase = data;
+          console.log(`markKeyPhrase: ${markKeyPhrase}`);
         })
         .then(() => {
-          const db = async () => {
+          async function run(docName) {
+            let count = 0;
             try {
-              const text = new Text({
-                readText: completeText,
-              });
-              text.keyPhrases.push(...markKeyPhrase[0]); // ! TODO: fix to push all key phrases, not just the first
-              await text.save();
-              console.log("saved data: ", text);
-            } catch (e) {
-              console.log(e.message);
+              await client.connect();
+              console.log("Connected correctly to server");
+
+              const db = client.db(dbName);
+              const col = db.collection("text");
+              docName = {
+                pages: [
+                  {
+                    readText: completeText,
+                    keyPhrases: [...markKeyPhrase],
+                  },
+                ],
+              };
+              const p = await col.insertOne(docName);
+              myDoc = await col.findOne();
+              console.log(myDoc);
+            } catch (err) {
+              console.log(err.stack);
             }
-          };
-          db();
+            // finally {
+            //   await client.close();
+            // }
+          }
+          run().catch(console.dir);
         })
         .catch((err) => console.log(err));
     });
 
-    return markKeyPhrase;
-    // ! TO-DO: implement logic that only executes this once for each document
+    return myDoc;
+    // return markKeyPhrase;
   });
 };
-
-// const db = async (newDoc, keyPh) => {
-//   console.log("newDoc", newDoc);
-//   console.log("keyPh", keyPh);
-//   try {
-//     newDoc = new Text({
-//       readText: completeText,
-//     });
-//     newDoc.keyPhrases.push(...keyPh[0]);
-//     await newDoc.save();
-
-//     console.log("saved data: ", newDoc);
-//   } catch (e) {
-//     console.log(e.message);
-//   }
-// };
-
-// grading code
-// grader(markKeyPhrase, answerKeyPhrase);

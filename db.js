@@ -39,13 +39,14 @@ async function run() {
     const col = db.collection("text");
     // Construct a document
     let textDocument = {
-      readText: completeText,
-      keyPhrases: markKeyPhrase,
-      //   name: { first: "Alan", last: "Turing" },
-      //   birth: new Date(1912, 5, 23), // June 23, 1912
-      //   death: new Date(1954, 5, 7), // June 7, 1954
-      //   contribs: ["Turing machine", "Turing test", "Turingery"],
-      //   views: 1250000,
+      id: Number,
+      // ?  use a Map()
+      pages: [
+        {
+          readText: String,
+          keyPhrases: [String],
+        },
+      ],
     };
     // Insert a single document, wait for promise so we can read it back
     const p = await col.insertOne(textDocument);
@@ -61,8 +62,57 @@ async function run() {
 }
 // run().catch(console.dir);
 
-// for local mongodb server
-// export default main;
+// db save code that was formerly in .then() of readOperation()
 
-// for atlas
-// export default run
+// using mongoose for local MongoDB server
+// const mongoose = require("mongoose");
+// mongoose.connect("mongodb://localhost:27017/textExtract");
+
+const db = async () => {
+  try {
+    const text = new Text({
+      readText: completeText,
+    });
+    text.keyPhrases.push(...markKeyPhrase[0]); // ! TODO: fix to push all key phrases, not just the first
+    await text.save();
+    console.log("saved data: ", text);
+  } catch (e) {
+    console.log(e.message);
+  }
+};
+db();
+
+async function run(docName) {
+  let count = 0;
+  try {
+    const db = client.db(dbName);
+    // Use the collection "text"
+    const col = db.collection("text");
+    // Construct a document
+    docName = {
+      // ?  use Map() i.e. hashMap
+      // pages: new Map([
+      //   [
+      //     "page",
+      //     { readText: completeText, keyPhrases: [...markKeyPhrase] },
+      //   ],
+      // ]),
+      pages: [
+        {
+          readText: completeText,
+          keyPhrases: [...markKeyPhrase],
+        },
+      ],
+    };
+    // Insert a single document, wait for promise so we can read it back
+    const p = await col.insertOne(docName);
+    // Find one document
+    const myDoc = await col.findOne();
+    // Print to the console
+    console.log(myDoc);
+  } catch (err) {
+    console.log(err.stack);
+  } finally {
+    await client.close();
+  }
+}
