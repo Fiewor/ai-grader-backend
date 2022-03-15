@@ -1,25 +1,20 @@
 // using local Mongo server
 const mongoose = require("mongoose");
-module.exports = async function main(value) {
-  await mongoose.connect("mongodb://localhost:27017/textExtract");
-
-  const textSchema = new mongoose.Schema({
-    // readText: String,
-    keyPhrases: String,
-  });
-  const Text = mongoose.model("Text", textSchema);
-
-  const text = new Text({
-    // readText: completeText,
-    keyPhrases: value,
-  });
-
-  await text.save();
-
-  const result = Text.findOne();
-  console.log("saved data", result);
+mongoose.connect("mongodb://localhost:27017/textExtract");
+const Text = require("./Text"); //check Text.js for schema definition
+const db = async () => {
+  try {
+    const text = new Text({
+      readText: completeText,
+    });
+    text.keyPhrases.push(...markKeyPhrase.flat());
+    await text.save();
+    console.log("saved data: ", text);
+  } catch (e) {
+    console.log(e.message);
+  }
 };
-// main()
+// db();
 
 // using Mongo Atlas
 const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -41,11 +36,6 @@ async function run() {
     let textDocument = {
       readText: completeText,
       keyPhrases: markKeyPhrase,
-      //   name: { first: "Alan", last: "Turing" },
-      //   birth: new Date(1912, 5, 23), // June 23, 1912
-      //   death: new Date(1954, 5, 7), // June 7, 1954
-      //   contribs: ["Turing machine", "Turing test", "Turingery"],
-      //   views: 1250000,
     };
     // Insert a single document, wait for promise so we can read it back
     const p = await col.insertOne(textDocument);
@@ -60,22 +50,3 @@ async function run() {
   }
 }
 // run().catch(console.dir);
-
-// const db = async (newDoc, keyPh) => {
-//   console.log("newDoc", newDoc);
-//   console.log("keyPh", keyPh);
-//   try {
-//     newDoc = new Text({
-//       readText: completeText,
-//     });
-//     newDoc.keyPhrases.push(...keyPh[0]);
-//     await newDoc.save();
-
-//     console.log("saved data: ", newDoc);
-//   } catch (e) {
-//     console.log(e.message);
-//   }
-// };
-
-// grading code
-// grader(markKeyPhrase, answerKeyPhrase);
