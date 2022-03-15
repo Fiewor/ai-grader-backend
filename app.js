@@ -78,15 +78,9 @@ app.get(`/viewText`, async (req, res) => {
   try {
     // read file and extract text from answer sheet
     readOperation(`${__dirname}\\uploads\\answer`);
-    // .then(() =>
-    //   db("answerText", "answerKeyPhrase")
-    // );
 
     // read file and extract text from mark sheet
     readOperation(`${__dirname}\\uploads\\mark`);
-    // .then(() =>
-    //   db("markText", "markKeyPhrase")
-    // );
 
     const result = await Text.find();
     res.send(result);
@@ -186,7 +180,6 @@ const readOperation = async (path) => {
         .then((data) => {
           markKeyPhrase = data;
           answerKeyPhrase = data;
-          // console.log(`markKeyPhrase: ${markKeyPhrase}`)
         })
         .then(() => {
           const db = async () => {
@@ -194,7 +187,7 @@ const readOperation = async (path) => {
               const text = new Text({
                 readText: completeText,
               });
-              text.keyPhrases.push(...markKeyPhrase[0]); // ! TODO: fix to push all key phrases, not just the first
+              text.keyPhrases.push(...markKeyPhrase.flat());
               await text.save();
               console.log("saved data: ", text);
             } catch (e) {
@@ -210,22 +203,3 @@ const readOperation = async (path) => {
     // ! TO-DO: implement logic that only executes this once for each document
   });
 };
-
-// const db = async (newDoc, keyPh) => {
-//   console.log("newDoc", newDoc);
-//   console.log("keyPh", keyPh);
-//   try {
-//     newDoc = new Text({
-//       readText: completeText,
-//     });
-//     newDoc.keyPhrases.push(...keyPh[0]);
-//     await newDoc.save();
-
-//     console.log("saved data: ", newDoc);
-//   } catch (e) {
-//     console.log(e.message);
-//   }
-// };
-
-// grading code
-// grader(markKeyPhrase, answerKeyPhrase);

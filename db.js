@@ -61,8 +61,21 @@ async function run() {
 }
 // run().catch(console.dir);
 
-// for local mongodb server
-// export default main;
+// const db = async (newDoc, keyPh) => {
+//   console.log("newDoc", newDoc);
+//   console.log("keyPh", keyPh);
+//   try {
+//     newDoc = new Text({
+//       readText: completeText,
+//     });
+//     newDoc.keyPhrases.push(...keyPh[0]);
+//     await newDoc.save();
 
-// for atlas
-// export default run
+//     console.log("saved data: ", newDoc);
+//   } catch (e) {
+//     console.log(e.message);
+//   }
+// };
+
+// grading code
+// grader(markKeyPhrase, answerKeyPhrase);
