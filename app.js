@@ -8,6 +8,7 @@ const fileUpload = require("express-fileupload");
 require("dotenv").config();
 
 const fs = require("fs");
+const fsPromises = fs.promises;
 const path = require("path");
 const createReadStream = fs.createReadStream;
 const sleep = require("util").promisify(setTimeout);
@@ -34,12 +35,15 @@ const computerVisionClient = new ComputerVisionClient(
   new ApiKeyCredentials({ inHeader: { "Ocp-Apim-Subscription-Key": key } }),
   endpoint
 );
-const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/textExtract");
-
-const Text = require("./Text");
-
-let textArray = [];
+// using Mongo Atlas
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri = `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
+const dbName = "textExtract";
 
 app.use(fileUpload());
 
@@ -51,6 +55,12 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   next();
 });
+
+let textArray = [],
+  markKeyPhrase,
+  completeText,
+  answerKeyPhrase,
+  extracted = [];
 
 app.post(`/upload/mark/`, (req, res) => {
   if (req.files === null || undefined) {
@@ -75,19 +85,53 @@ app.post(`/upload/answer/`, (req, res) => {
 });
 
 app.get(`/viewText`, async (req, res) => {
-  try {
-    // read file and extract text from answer sheet
-    readOperation(`${__dirname}\\uploads\\answer`);
+  const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
+  console.log("answerReadResult", answerReadResult);
+  // const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
 
-    // read file and extract text from mark sheet
-    readOperation(`${__dirname}\\uploads\\mark`);
+  Promise.all([
+    readOperation(`${__dirname}\\uploads\\answer`),
+    keyPhraseExtractor(...answerReadResult),
+  ])
+    .then((data) => {
+      console.log("data from Promise.all: ", data);
+      const run = async () => {
+        try {
+          await client.connect();
+          console.log("Connected correctly to server");
+          const db = client.db(dbName);
+          const col = db.collection("text");
 
-    const result = await Text.find();
-    res.send(result);
-  } catch (err) {
-    console.log(err);
-  }
+          let answerDocument = {
+            readText: data[0].join(" "),
+            keyPhrases: [...data[1].flat()],
+          };
+
+          // let markDocument = {
+          //   readText: markReadResult,
+          // };
+          // markDocument.keyPhrases.push(...markKeyPhrase.flat());
+
+          const answerDoc = await col.insertOne(answerDocument);
+          // const markDoc = await col.insertOne(markDocument);
+          console.log("answerDoc: ", answerDoc);
+          // console.log("markDoc: ", markDoc);
+          // Find one document
+          const myDoc = await col.findOne();
+          // Print to the console
+          console.log("documents in collection: ", myDoc);
+          res.send(myDoc);
+        } catch (err) {
+          console.log(err.stack);
+        } finally {
+          await client.close();
+        }
+      };
+      run().catch(console.dir);
+    })
+    .catch((error) => console.error(error.message));
 });
+// });
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
@@ -101,9 +145,8 @@ const postHandler = async (req, folder) => {
   }
 };
 
-let completeText;
 // function to extract identifiable text from image. takes image path as argument
-let getTextFromImage = async (imagePath) => {
+const getTextFromImage = async (imagePath) => {
   const STATUS_SUCCEEDED = "succeeded";
   const STATUS_FAILED = "failed";
 
@@ -150,9 +193,8 @@ let getTextFromImage = async (imagePath) => {
   return textArray;
 };
 
-let extracted = [];
 // function to extract key phrases from provided text string
-let keyPhraseExtraction = async (client, keyPhrasesInput) => {
+const keyPhraseExtraction = async (client, keyPhrasesInput) => {
   try {
     const keyPhraseResult = await client.extractKeyPhrases(keyPhrasesInput);
 
@@ -166,40 +208,40 @@ let keyPhraseExtraction = async (client, keyPhrasesInput) => {
   }
   return extracted;
 };
-let markKeyPhrase, answerKeyPhrase;
 
 const readOperation = async (path) => {
-  fs.readdir(path, (err, files) => {
-    if (err) console.log(err);
+  let files;
+  try {
+    files = await fsPromises.readdir(path);
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+  return Promise.all(
+    files.map(async (file) => {
+      try {
+        const results = await getTextFromImage(
+          `${__dirname}\\uploads\\answer\\${file}`
+        );
+        console.log("data from readOperation:", results.join(""));
+        return results;
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    })
+  );
+};
 
-    files.forEach((file) => {
-      getTextFromImage(`${__dirname}\\uploads\\answer\\${file}`)
-        .then((results) => {
-          return keyPhraseExtraction(textAnalyticsClient, results);
-        })
-        .then((data) => {
-          markKeyPhrase = data;
-          answerKeyPhrase = data;
-        })
-        .then(() => {
-          const db = async () => {
-            try {
-              const text = new Text({
-                readText: completeText,
-              });
-              text.keyPhrases.push(...markKeyPhrase.flat());
-              await text.save();
-              console.log("saved data: ", text);
-            } catch (e) {
-              console.log(e.message);
-            }
-          };
-          db();
-        })
-        .catch((err) => console.log(err));
-    });
-
-    return markKeyPhrase;
-    // ! TO-DO: implement logic that only executes this once for each document
-  });
+const keyPhraseExtractor = async (dataFromReadOperation) => {
+  try {
+    const data = await keyPhraseExtraction(
+      textAnalyticsClient,
+      dataFromReadOperation
+    );
+    console.log("data inside keyPhraseExtractor: ", data);
+    return data;
+  } catch (err) {
+    console.error(err);
+  }
 };
