@@ -57,12 +57,29 @@ app.use((req, res, next) => {
 });
 
 let textArray = [],
-  markKeyPhrase,
   completeText,
-  answerKeyPhrase,
   extracted = [];
 
-app.post(`/upload/mark/`, (req, res) => {
+app.post(`/uploads/mark/`, (req, res) => {
+  // if there's no upload folder, create one
+  fs.access(`./uploads/mark`, (error) => {
+    if (error) {
+      fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
+        error
+          ? console.log(error)
+          : console.log(
+              "Necessary directory and sub-directories created successfully"
+            )
+      );
+      fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
+        error
+          ? console.log(error)
+          : console.log(
+              "Necessary directory and sub-directories created successfully"
+            )
+      );
+    }
+  });
   if (req.files === null || undefined) {
     res.json({ noFile: true });
     return;
@@ -73,11 +90,30 @@ app.post(`/upload/mark/`, (req, res) => {
   );
 });
 
-app.post(`/upload/answer/`, (req, res) => {
+app.post(`/uploads/answer/`, (req, res) => {
+  fs.access(`./uploads/mark`, (error) => {
+    if (error) {
+      fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
+        error
+          ? console.log(error)
+          : console.log(
+              "Necessary directory and sub-directories created successfully"
+            )
+      );
+      fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
+        error
+          ? console.log(error)
+          : console.log(
+              "Necessary directory and sub-directories created successfully"
+            )
+      );
+    }
+  });
   if (req.files === null || undefined) {
     res.json({ noFile: true });
     return;
   }
+
   postHandler(req, "answer");
   res.send(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
@@ -86,12 +122,13 @@ app.post(`/upload/answer/`, (req, res) => {
 
 app.get(`/viewText`, async (req, res) => {
   const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
-  console.log("answerReadResult", answerReadResult);
-  // const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
+  const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
 
   Promise.all([
     readOperation(`${__dirname}\\uploads\\answer`),
     keyPhraseExtractor(...answerReadResult),
+    readOperation(`${__dirname}\\uploads\\mark`),
+    keyPhraseExtractor(...markReadResult),
   ])
     .then((data) => {
       console.log("data from Promise.all: ", data);
@@ -107,15 +144,15 @@ app.get(`/viewText`, async (req, res) => {
             keyPhrases: [...data[1].flat()],
           };
 
-          // let markDocument = {
-          //   readText: markReadResult,
-          // };
-          // markDocument.keyPhrases.push(...markKeyPhrase.flat());
+          let markDocument = {
+            readText: data[2].join(" "),
+            keyPhrases: [...data[3].flat()],
+          };
 
           const answerDoc = await col.insertOne(answerDocument);
-          // const markDoc = await col.insertOne(markDocument);
-          console.log("answerDoc: ", answerDoc);
-          // console.log("markDoc: ", markDoc);
+          const markDoc = await col.insertOne(markDocument);
+          console.log("answerDoc: ", answerDocument);
+          console.log("markDoc: ", markDocument);
           // Find one document
           const myDoc = await col.findOne();
           // Print to the console
@@ -217,13 +254,15 @@ const readOperation = async (path) => {
     console.log(err);
     throw err;
   }
+  let section = /$[\\w]{1,}/g.test(path);
   return Promise.all(
     files.map(async (file) => {
       try {
         const results = await getTextFromImage(
-          `${__dirname}\\uploads\\answer\\${file}`
+          `${__dirname}\\uploads\\${path.substr(
+            path.lastIndexOf(`\\`) + 1
+          )}\\${file}`
         );
-        console.log("data from readOperation:", results.join(""));
         return results;
       } catch (err) {
         console.error(err);
