@@ -43,9 +43,13 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+const { google } = require("googleapis");
+const sheets = google.sheets("v4");
+const cors = require("cors");
 const dbName = "textExtract";
 
 app.use(fileUpload());
+app.use(cors());
 
 app.listen(port, () => {
   console.log(`Server is started on port ${port}`);
@@ -86,52 +90,38 @@ app.post(`/upload/answer/`, (req, res) => {
 
 app.get(`/viewText`, async (req, res) => {
   const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
-  console.log("answerReadResult", answerReadResult);
-  // const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
+  // console.log("answerReadResult", answerReadResult);
 
-  Promise.all([
-    readOperation(`${__dirname}\\uploads\\answer`),
-    keyPhraseExtractor(...answerReadResult),
-  ])
-    .then((data) => {
-      console.log("data from Promise.all: ", data);
-      const run = async () => {
-        try {
-          await client.connect();
-          console.log("Connected correctly to server");
-          const db = client.db(dbName);
-          const col = db.collection("text");
+  const run = async () => {
+    try {
+      await client.connect();
+      console.log("Connected correctly to server");
+      const db = client.db(dbName);
+      const col = db.collection("text");
 
-          let answerDocument = {
-            readText: data[0].join(" "),
-            keyPhrases: [...data[1].flat()],
-          };
-
-          // let markDocument = {
-          //   readText: markReadResult,
-          // };
-          // markDocument.keyPhrases.push(...markKeyPhrase.flat());
-
-          const answerDoc = await col.insertOne(answerDocument);
-          // const markDoc = await col.insertOne(markDocument);
-          console.log("answerDoc: ", answerDoc);
-          // console.log("markDoc: ", markDoc);
-          // Find one document
-          const myDoc = await col.findOne();
-          // Print to the console
-          console.log("documents in collection: ", myDoc);
-          res.send(myDoc);
-        } catch (err) {
-          console.log(err.stack);
-        } finally {
-          await client.close();
-        }
+      let answerDocument = {
+        readText: answerReadResult[0],
       };
-      run().catch(console.dir);
-    })
-    .catch((error) => console.error(error.message));
+
+      const answerDoc = await col.insertOne(answerDocument);
+      // console.log("answerDoc: ", answerDoc);
+      const myDoc = await col.findOne();
+      console.log("documents in collection: ", myDoc);
+      res.send(myDoc.readText);
+    } catch (err) {
+      console.log(err.stack);
+    } finally {
+      await client.close();
+    }
+  };
+  run().catch(console.dir);
 });
-// });
+
+app.post(`/viewText`, async (req, res) => {
+  // run google sheet post request here
+  console.log("req:", req);
+  console.log("res:", res);
+});
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
@@ -149,13 +139,17 @@ const postHandler = async (req, folder) => {
 const getTextFromImage = async (imagePath) => {
   const STATUS_SUCCEEDED = "succeeded";
   const STATUS_FAILED = "failed";
+  const STATUS_RUNNING = "running";
 
   console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
 
   const streamResponse = await computerVisionClient
     .readInStream(() => createReadStream(imagePath))
     .then((response) => response)
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      throw err;
+    });
 
   // Get operation location from response, so you can get the operation ID.
   const operationLocationLocal = streamResponse.operationLocation;
@@ -176,15 +170,15 @@ const getTextFromImage = async (imagePath) => {
     }
     if (readOpResult.status === STATUS_SUCCEEDED) {
       console.log("The Read File operation was a success.");
-      console.log();
-      console.log("Read File local image result:");
+      // console.log();
+      // console.log("Read File local image result:");
       // Print the text captured
       for (const textRecResult of readOpResult.analyzeResult.readResults) {
         for (const line of textRecResult.lines) {
           textArray.push(line.text);
         }
         completeText = textArray.join(" ");
-        console.log(completeText);
+        // console.log(completeText);
       }
       break;
     }
@@ -223,7 +217,6 @@ const readOperation = async (path) => {
         const results = await getTextFromImage(
           `${__dirname}\\uploads\\answer\\${file}`
         );
-        console.log("data from readOperation:", results.join(""));
         return results;
       } catch (err) {
         console.error(err);
