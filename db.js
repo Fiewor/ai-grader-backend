@@ -50,3 +50,32 @@ async function run() {
   }
 }
 // run().catch(console.dir);
+
+// saveOperation
+
+// .then(() => {
+// async function run() {
+//   try {
+//     await client.connect();
+//     console.log("Connected correctly to server");
+//     const db = client.db(dbName);
+//     const col = db.collection("text");
+//     let textDocument = {
+//       readText: completeText,
+//     };
+//     textDocument.keyPhrases.push(...markKeyPhrase.flat());
+//     const p = await col.insertOne(textDocument);
+//   } catch (err) {
+//     console.log(err.stack);
+//   }
+//   // finally {
+//   //   await client.close();
+//   // }
+// }
+// run().catch(console.dir);
+// })
+
+// const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
+// const answerKeyPhrase = await keyPhraseExtractor(answerReadResult);
+// const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
+// const markKeyPhrase = await keyPhraseExtractor(markReadResult);
