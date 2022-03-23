@@ -134,6 +134,8 @@ app.get(`/viewText`, async (req, res) => {
           console.log("Connected correctly to server");
           const db = client.db(dbName);
           const col = db.collection("text");
+          // const col1 = db.collection("answer");
+          // const col2 = db.collection("mark");
 
           let answerDocument = {
             readText: answerReadResult.join(" "),
@@ -153,7 +155,9 @@ app.get(`/viewText`, async (req, res) => {
           const myDoc = await col.findOne();
           // Print to the console
           console.log("documents in collection: ", myDoc);
-          res.send(myDoc);
+          let graded = await grader(answerDocument, markDocument);
+          console.log("grading result: ", graded);
+          // res.send(myDoc);
         } catch (err) {
           console.log(err.stack);
         } finally {
@@ -165,6 +169,16 @@ app.get(`/viewText`, async (req, res) => {
     .catch((error) => console.error(error.message));
 });
 // });
+
+const grader = async (array1, array2) => {
+  let count = 0;
+  array1.keyPhrases.forEach((phrase1) => {
+    array2.keyPhrases.forEach((phrase2) => {
+      if (phrase1 === phrase2) count++;
+    });
+  });
+  return count;
+};
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
