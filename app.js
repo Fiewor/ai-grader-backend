@@ -56,10 +56,6 @@ app.use((req, res, next) => {
   next();
 });
 
-let textArray = [],
-  completeText,
-  extracted = [];
-
 app.post(`/uploads/mark/`, (req, res) => {
   // if there's no upload folder, create one
   fs.access(`./uploads/mark`, (error) => {
@@ -125,9 +121,9 @@ app.get(`/viewText`, async (req, res) => {
   const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
 
   Promise.all([
-    readOperation(`${__dirname}\\uploads\\answer`),
+    // readOperation(`${__dirname}\\uploads\\answer`),
     keyPhraseExtractor(...answerReadResult),
-    readOperation(`${__dirname}\\uploads\\mark`),
+    // readOperation(`${__dirname}\\uploads\\mark`),
     keyPhraseExtractor(...markReadResult),
   ])
     .then((data) => {
@@ -140,13 +136,13 @@ app.get(`/viewText`, async (req, res) => {
           const col = db.collection("text");
 
           let answerDocument = {
-            readText: data[0].join(" "),
-            keyPhrases: [...data[1].flat()],
+            readText: answerReadResult.join(" "),
+            keyPhrases: [...data[0].flat()],
           };
 
           let markDocument = {
-            readText: data[2].join(" "),
-            keyPhrases: [...data[3].flat()],
+            readText: markReadResult.join(" "),
+            keyPhrases: [...data[1].flat()],
           };
 
           const answerDoc = await col.insertOne(answerDocument);
@@ -186,6 +182,8 @@ const postHandler = async (req, folder) => {
 const getTextFromImage = async (imagePath) => {
   const STATUS_SUCCEEDED = "succeeded";
   const STATUS_FAILED = "failed";
+  let textArray = [],
+    completeText;
 
   console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
 
@@ -232,6 +230,7 @@ const getTextFromImage = async (imagePath) => {
 
 // function to extract key phrases from provided text string
 const keyPhraseExtraction = async (client, keyPhrasesInput) => {
+  let extracted = [];
   try {
     const keyPhraseResult = await client.extractKeyPhrases(keyPhrasesInput);
 
