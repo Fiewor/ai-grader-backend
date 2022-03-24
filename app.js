@@ -133,9 +133,8 @@ app.get(`/viewText`, async (req, res) => {
           await client.connect();
           console.log("Connected correctly to server");
           const db = client.db(dbName);
-          const col = db.collection("text");
-          // const col1 = db.collection("answer");
-          // const col2 = db.collection("mark");
+          const col1 = db.collection("answer");
+          const col2 = db.collection("mark");
 
           let answerDocument = {
             readText: answerReadResult.join(" "),
@@ -147,16 +146,18 @@ app.get(`/viewText`, async (req, res) => {
             keyPhrases: [...data[1].flat()],
           };
 
-          const answerDoc = await col.insertOne(answerDocument);
-          const markDoc = await col.insertOne(markDocument);
+          const answerDoc = await col1.insertOne(answerDocument);
+          const markDoc = await col2.insertOne(markDocument);
           console.log("answerDoc: ", answerDocument);
           console.log("markDoc: ", markDocument);
           // Find one document
-          const myDoc = await col.findOne();
+          const doc1 = await col1.findOne();
+          const doc2 = await col2.findOne();
           // Print to the console
-          console.log("documents in collection: ", myDoc);
-          let graded = await grader(answerDocument, markDocument);
-          console.log("grading result: ", graded);
+          console.log("documents in collection1: ", doc1);
+          console.log("documents in collection2: ", doc2);
+          // let graded = await grader(answerDocument, markDocument);
+          // console.log("grading result: ", graded);
           // res.send(myDoc);
         } catch (err) {
           console.log(err.stack);
@@ -168,17 +169,42 @@ app.get(`/viewText`, async (req, res) => {
     })
     .catch((error) => console.error(error.message));
 });
-// });
 
-const grader = async (array1, array2) => {
-  let count = 0;
-  array1.keyPhrases.forEach((phrase1) => {
-    array2.keyPhrases.forEach((phrase2) => {
-      if (phrase1 === phrase2) count++;
+app.get(`/gradeResult`, async (req, res) => {
+  await client.connect();
+  const answerCollection = await listData(`textExtract`, `answer`);
+  const markCollection = await listData(`textExtract`, `mark`);
+  // grader();
+  res.status(200).json({ success: true });
+});
+
+const listData = async (db = "textExtract", collection = "text") => {
+  const cursor = client.db(`${db}`).collection(`${collection}`).find();
+  const results = await cursor.toArray();
+  console.log("results: ", results);
+  if (results.length > 0) {
+    console.log(`Found ${results.length} listing(s)`);
+    results.forEach((result, index) => {
+      // console.log(result);
     });
-  });
-  return count;
+  } else return `No data found`;
+  return results;
 };
+
+// const grader = async (arr1, arr2) => {
+//   let count = 0;
+//   arr1.forEach((obj1) => {
+//     arr2.forEach((obj2) => {
+//       obj1.keyPhrases.forEach((key1) => {
+//         obj2.keyPhrases.forEach((key2) => {
+//           if (key1 === key2) count++;
+//         });
+//       });
+//     });
+//   });
+//   console.log(count);
+//   return count;
+// };
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
