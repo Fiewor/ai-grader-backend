@@ -174,7 +174,7 @@ app.get(`/gradeResult`, async (req, res) => {
   await client.connect();
   const answerCollection = await listData(`textExtract`, `answer`);
   const markCollection = await listData(`textExtract`, `mark`);
-  // grader();
+  grader(answerCollection, markCollection);
   res.status(200).json({ success: true });
 });
 
@@ -191,20 +191,20 @@ const listData = async (db = "textExtract", collection = "text") => {
   return results;
 };
 
-// const grader = async (arr1, arr2) => {
-//   let count = 0;
-//   arr1.forEach((obj1) => {
-//     arr2.forEach((obj2) => {
-//       obj1.keyPhrases.forEach((key1) => {
-//         obj2.keyPhrases.forEach((key2) => {
-//           if (key1 === key2) count++;
-//         });
-//       });
-//     });
-//   });
-//   console.log(count);
-//   return count;
-// };
+const grader = async (arr1, arr2) => {
+  let count = 0;
+  arr1.forEach((obj1) => {
+    arr2.forEach((obj2) => {
+      obj1.keyPhrases.forEach((key1) => {
+        obj2.keyPhrases.forEach((key2) => {
+          if (key1 === key2) count++;
+        });
+      });
+    });
+  });
+  console.log(count);
+  return count;
+};
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
