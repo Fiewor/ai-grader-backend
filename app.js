@@ -174,8 +174,8 @@ app.get(`/gradeResult`, async (req, res) => {
   await client.connect();
   const answerCollection = await listData(`textExtract`, `answer`);
   const markCollection = await listData(`textExtract`, `mark`);
-  grader(answerCollection, markCollection);
-  res.status(200).json({ success: true });
+  let gradeData = await grader(answerCollection, markCollection);
+  res.status(200).json({ gradeData });
 });
 
 const listData = async (db = "textExtract", collection = "text") => {
