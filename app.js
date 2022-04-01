@@ -58,10 +58,12 @@ app.use((req, res, next) => {
 
 if (process.env.NODE_ENV === "production") {
   // set static folder
-  app.use(express.static("http:localhost:3000/build"));
+  //! edit this so that you can point to build directory inside frontend folder
+  //! instead of moving the build directory here like it is currently been done
+  app.use(express.static(path.join(__dirname, "../ai-grader/", "build")));
 
-  app.get("*", (req, res) => {
-    res.sendFile(`http:localhost:3000/build/index.html`);
+  app.get("/*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../ai-grader/", "build", "index.html"));
   });
 }
 

@@ -19,6 +19,7 @@
   },
   "scripts": {
     "test": "standard && node test.js",
+    "deploy": "cp -a ai-grader/build/. ai-grader-backend/",
     "start": "node app.js"
   },
   "repository": {
