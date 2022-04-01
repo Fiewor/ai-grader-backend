@@ -56,6 +56,15 @@ app.use((req, res, next) => {
   next();
 });
 
+if (process.env.NODE_ENV === "production") {
+  // set static folder
+  app.use(express.static("http:localhost:3000/build"));
+
+  app.get("*", (req, res) => {
+    res.sendFile(`http:localhost:3000/build/index.html`);
+  });
+}
+
 app.post(`/uploads/mark/`, (req, res) => {
   // if there's no upload folder, create one
   fs.access(`./uploads/mark`, (error) => {
