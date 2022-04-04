@@ -270,7 +270,6 @@ const readOperation = async (path) => {
     console.log(err);
     throw err;
   }
-  let section = /$[\\w]{1,}/g.test(path);
   return Promise.all(
     files.map(async (file) => {
       try {
