@@ -293,7 +293,6 @@ const keyPhraseExtractor = async (dataFromReadOperation) => {
       textAnalyticsClient,
       dataFromReadOperation
     );
-    console.log("data inside keyPhraseExtractor: ", data);
     return data;
   } catch (err) {
     console.error(err);
