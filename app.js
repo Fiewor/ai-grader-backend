@@ -181,7 +181,6 @@ app.get(`/viewText`, async (req, res) => {
     })
     .catch((error) => console.error(error.message));
 });
-// });
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
