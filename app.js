@@ -56,6 +56,23 @@ app.use((req, res, next) => {
   next();
 });
 
+if (process.env.NODE_ENV === "production") {
+  //! below commented-out code was meant to point to ai-grader folder and serve build folder from there
+  //? it isn't quite working though
+  // app.use(express.static(path.join(__dirname, "../ai-grader/build")));
+
+  // app.get("/*", (req, res) => {
+  //   res.sendFile(path.join(__dirname, "../ai-grader/", "build", "index.html"));
+  // });
+
+  //! but this should...
+  app.use(express.static(path.join(__dirname, "build")));
+
+  app.get("/*", function (req, res) {
+    res.sendFile(path.join(__dirname, "build", "index.html"));
+  });
+}
+
 app.post(`/uploads/mark/`, (req, res) => {
   // if there's no upload folder, create one
   fs.access(`./uploads/mark`, (error) => {
