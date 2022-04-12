@@ -57,15 +57,6 @@ app.use((req, res, next) => {
 });
 
 if (process.env.NODE_ENV === "production") {
-  //! below commented-out code was meant to point to ai-grader folder and serve build folder from there
-  //? it isn't quite working though
-  // app.use(express.static(path.join(__dirname, "../ai-grader/build")));
-
-  // app.get("/*", (req, res) => {
-  //   res.sendFile(path.join(__dirname, "../ai-grader/", "build", "index.html"));
-  // });
-
-  //! but this should...
   app.use(express.static(path.join(__dirname, "build")));
 
   app.get("/*", function (req, res) {
@@ -101,6 +92,8 @@ app.post(`/uploads/mark/`, (req, res) => {
   res.send(
     `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
   );
+  console.log(__dirname);
+  console.log(process.cwd());
 });
 
 app.post(`/uploads/answer/`, (req, res) => {
@@ -131,6 +124,8 @@ app.post(`/uploads/answer/`, (req, res) => {
   res.send(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
   );
+  console.log(__dirname);
+  console.log(process.cwd());
 });
 
 app.get(`/viewText`, async (req, res) => {
