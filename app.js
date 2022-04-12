@@ -89,11 +89,12 @@ app.post(`/uploads/mark/`, (req, res) => {
     return;
   }
   postHandler(req, "mark");
-  res.send(
+  res.write(
     `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
   );
-  console.log(__dirname);
-  console.log(process.cwd());
+  res.write(__dirname);
+  res.write(process.cwd());
+  res.end();
 });
 
 app.post(`/uploads/answer/`, (req, res) => {
@@ -121,11 +122,12 @@ app.post(`/uploads/answer/`, (req, res) => {
   }
 
   postHandler(req, "answer");
-  res.send(
+  res.write(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
   );
-  console.log(__dirname);
-  console.log(process.cwd());
+  res.write(__dirname);
+  res.write(process.cwd());
+  res.end();
 });
 
 app.get(`/viewText`, async (req, res) => {
