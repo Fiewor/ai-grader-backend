@@ -66,22 +66,23 @@ let textArray = [],
   answerKeyPhrase,
   extracted = [];
 
-app.post(`/upload/mark/`, (req, res) => {
-  if (req.files === null || undefined) {
+app.post(`/uploads/answer/`, (req, res) => {
+  fs.access(`./uploads/answer`, (error) => {
+    if (error) {
+      fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
+        error
+          ? console.log(error)
+          : console.log(
+              "Necessary directory and sub-directories created successfully"
+            )
+      );
+    }
+  });
+  if (req.files === null || req.files === undefined) {
     res.json({ noFile: true });
     return;
   }
-  postHandler(req, "mark");
-  res.send(
-    `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
-  );
-});
 
-app.post(`/upload/answer/`, (req, res) => {
-  if (req.files === null || undefined) {
-    res.json({ noFile: true });
-    return;
-  }
   postHandler(req, "answer");
   res.send(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
@@ -106,7 +107,7 @@ app.get(`/viewText`, async (req, res) => {
       const answerDoc = await col.insertOne(answerDocument);
       // console.log("answerDoc: ", answerDoc);
       const myDoc = await col.findOne();
-      console.log("documents in collection: ", myDoc);
+      // console.log("documents in collection: ", myDoc);
       res.send(myDoc.readText);
     } catch (err) {
       console.log(err.stack);

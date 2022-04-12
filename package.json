@@ -2,7 +2,7 @@
   "name": "ai-grader-backend",
   "version": "1.0.0",
   "description": "backend for AI-Grader",
-  "main": "index.js",
+  "main": "app.js",
   "dependencies": {
     "@azure/ai-text-analytics": "^5.1.0",
     "@azure/cognitiveservices-computervision": "^8.1.0",
@@ -13,7 +13,6 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
-    "googleapis": "^97.0.0",
     "mongoose": "^6.0.12",
     "multer": "^1.4.3",
     "nodemon": "^2.0.14",
