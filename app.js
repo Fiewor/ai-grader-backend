@@ -92,8 +92,8 @@ app.post(`/uploads/mark/`, (req, res) => {
   res.write(
     `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
   );
-  res.write(__dirname);
-  res.write(process.cwd());
+  res.write("__dirname: ", __dirname);
+  res.write("process.cwd()", process.cwd());
   res.end();
 });
 
@@ -125,8 +125,8 @@ app.post(`/uploads/answer/`, (req, res) => {
   res.write(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
   );
-  res.write(__dirname);
-  res.write(process.cwd());
+  res.write("__dirname: ", __dirname);
+  res.write("process.cwd()", process.cwd());
   res.end();
 });
 
