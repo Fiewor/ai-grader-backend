@@ -98,16 +98,16 @@ app.post(`/uploads/mark/`, (req, res) => {
 });
 
 app.post(`/uploads/answer/`, (req, res) => {
-  fs.access(`./uploads/mark`, (error) => {
+  fs.access(`C:/uploads/mark`, (error) => {
     if (error) {
-      fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
+      fsPromises.mkdir(`C:/uploads/mark`, { recursive: true }, (error) =>
         error
           ? console.log(error)
           : console.log(
               "Necessary directory and sub-directories created successfully"
             )
       );
-      fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
+      fsPromises.mkdir(`C:/uploads/mark`, { recursive: true }, (error) =>
         error
           ? console.log(error)
           : console.log(
@@ -131,8 +131,10 @@ app.post(`/uploads/answer/`, (req, res) => {
 });
 
 app.get(`/viewText`, async (req, res) => {
-  const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
-  const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
+  // const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
+  // const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
+  const answerReadResult = await readOperation(`C:\\uploads\\answer`);
+  const markReadResult = await readOperation(`C:\\uploads\\mark`);
 
   Promise.all([
     // readOperation(`${__dirname}\\uploads\\answer`),
@@ -270,9 +272,7 @@ const readOperation = async (path) => {
     files.map(async (file) => {
       try {
         const results = await getTextFromImage(
-          `${__dirname}\\uploads\\${path.substr(
-            path.lastIndexOf(`\\`) + 1
-          )}\\${file}`
+          `C:\\uploads\\${path.substr(path.lastIndexOf(`\\`) + 1)}\\${file}`
         );
         return results;
       } catch (err) {
