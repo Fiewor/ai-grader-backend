@@ -49,6 +49,7 @@ const client = new MongoClient(uri, {
 const grader = require("./scripts/grading");
 
 const compileAndSave = require("./scripts/compileAndSave");
+const { answerSheet, markSheet } = require("./dummyData");
 
 app.use(fileUpload());
 
@@ -136,23 +137,14 @@ app.get("/viewGrade", async (req, res) => {
     await client.connect();
     console.log("Connected correctly to server");
     // get page from db - later, filter by page id
-    const answerDoc = client.db("textExtract").collection("answer").find();
-    const markDoc = client.db("textExtract").collection("mark").find();
+    const answerCol = client.db("textExtract").collection("answerSheet");
+    const markCol = client.db("textExtract").collection("markSheet");
 
-    const pipeline = [
-      // {
-      //   $match : {id: id}
-      // },
-      {
-        $project: {
-          phrases: 1,
-        },
-      },
-    ];
-    answerDoc.aggregate(pipeline);
-    markDoc.aggregate(pipeline);
-    const gradeForPage = grader(answerDoc, markDoc);
-    res.send(gradeForPage);
+    const answerDoc = await answerCol.findOne();
+    const markDoc = await markCol.findOne();
+
+    const gradeForPage = await grader(answerDoc, markDoc);
+    res.send({ grade: gradeForPage });
   } catch (err) {
     console.log(err.stack);
   } finally {
@@ -163,28 +155,18 @@ app.get("/viewGrade", async (req, res) => {
 app.get(`/viewText`, async (req, res) => {
   try {
     await client.connect();
-    console.log("Connected correctly to server");
-    const answerDoc = client.db("textExtract").collection("answer").find();
-    const markDoc = client.db("textExtract").collection("mark").find();
-
-    const pipeline = [
-      // {
-      //   $match : {id: id}
-      // },
-      {
-        $project: {
-          text: 1,
-        },
-      },
-    ];
-    answerDoc.aggregate(pipeline);
-    markDoc.aggregate(pipeline);
+    console.log("Connected successfully to database");
+    const answerDoc = await client
+      .db("textExtract")
+      .collection("answerSheet")
+      .findOne();
 
     res.send(answerDoc);
   } catch (err) {
     console.log(err.stack);
   } finally {
     await client.close();
+    console.log("Connection closed");
   }
 });
 
