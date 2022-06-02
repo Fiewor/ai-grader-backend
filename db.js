@@ -68,9 +68,9 @@ async function run() {
 //   } catch (err) {
 //     console.log(err.stack);
 //   }
-//   // finally {
-//   //   await client.close();
-//   // }
+// finally {
+//   await client.close();
+// }
 // }
 // run().catch(console.dir);
 // })
