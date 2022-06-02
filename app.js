@@ -37,13 +37,18 @@ const computerVisionClient = new ComputerVisionClient(
 );
 // using Mongo Atlas
 const { MongoClient, ServerApiVersion } = require("mongodb");
-const uri = process.env.NODE_ENV === "production" ? `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority` : `mongodb://localhost:27017`;
+const uri =
+  process.env.NODE_ENV === "production"
+    ? `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`
+    : `mongodb://localhost:27017`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-const dbName = "textExtract";
+const grader = require("./scripts/grading");
+
+const compileAndSave = require("./scripts/compileAndSave");
 
 app.use(fileUpload());
 
@@ -92,6 +97,7 @@ app.post(`/uploads/mark/`, (req, res) => {
   res.send(
     `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
   );
+  compileAndSave(`${__dirname}\\uploads\\mark`, `mark`);
 });
 
 app.post(`/uploads/answer/`, (req, res) => {
@@ -122,54 +128,61 @@ app.post(`/uploads/answer/`, (req, res) => {
   res.send(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
   );
+  compileAndSave(`${__dirname}\\uploads\\answer`, `answer`);
 });
 
-app.get('/viewGrade', async (req, res) => {
-  const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
-  const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
-
-})
-
-app.get(`/viewText`, async (req, res) => {
-  const answerReadResult = await readOperation(`${__dirname}\\uploads\\answer`);
-  const markReadResult = await readOperation(`${__dirname}\\uploads\\mark`);
-  let segmentArray = []
-
-  // seperate answerReadResult by delimiters e.g 1, a, i, \n
-  const answerReadArray = [...answerReadResult.split(/\b(\d|\w|i)?[.|)|]]\b/gi)];
-
-  // this would only work for answer sheet containing one line per answer
-  answerReadResult.forEach(lineInAnswer => {
-
-    const phrase = await keyPhraseExtractor(lineInAnswer)
-    //   const run = async () => {}
-    //   run().catch(console.dir);
-
-    let textSegment = {
-      _id: answerReadResult.indexOf(lineInAnswer),
-      text: lineInAnswer,
-      phrases: phrase,
-    }
-
-    segmentArray.push(textSegment)
-  })
-
+app.get("/viewGrade", async (req, res) => {
   try {
     await client.connect();
     console.log("Connected correctly to server");
-    const db = client.db("textExtract");
-    const col = db.collection("text");
+    // get page from db - later, filter by page id
+    const answerDoc = client.db("textExtract").collection("answer").find();
+    const markDoc = client.db("textExtract").collection("mark").find();
 
-    let answerDocument = {
-      page: segmentArray
-    };
+    const pipeline = [
+      // {
+      //   $match : {id: id}
+      // },
+      {
+        $project: {
+          phrases: 1,
+        },
+      },
+    ];
+    answerDoc.aggregate(pipeline);
+    markDoc.aggregate(pipeline);
+    const gradeForPage = grader(answerDoc, markDoc);
+    res.send(gradeForPage);
+  } catch (err) {
+    console.log(err.stack);
+  } finally {
+    await client.close();
+  }
+});
 
-    const answerDoc = await col.insertOne(answerDocument);
-    const myDoc = await col.findOne();
-    console.log(myDoc)
-    res.send(myDoc);
-  } catch(err){
-    console.log(err.stack)
+app.get(`/viewText`, async (req, res) => {
+  try {
+    await client.connect();
+    console.log("Connected correctly to server");
+    const answerDoc = client.db("textExtract").collection("answer").find();
+    const markDoc = client.db("textExtract").collection("mark").find();
+
+    const pipeline = [
+      // {
+      //   $match : {id: id}
+      // },
+      {
+        $project: {
+          text: 1,
+        },
+      },
+    ];
+    answerDoc.aggregate(pipeline);
+    markDoc.aggregate(pipeline);
+
+    res.send(answerDoc);
+  } catch (err) {
+    console.log(err.stack);
   } finally {
     await client.close();
   }
@@ -262,7 +275,7 @@ const readOperation = async (path) => {
     console.log(err);
     throw err;
   }
-  let section = /$[\\w]{1,}/g.test(path);
+  // let section = /$[\\w]{1,}/g.test(path);
   return Promise.all(
     files.map(async (file) => {
       try {

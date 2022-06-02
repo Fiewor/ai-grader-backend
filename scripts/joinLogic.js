@@ -24,3 +24,5 @@ const answerReadArray = answerReadResult.reduce((currString, nextString) => {
 }, initialString);
 
 console.log(answerReadArray);
+
+module.exports = answerReadArray;

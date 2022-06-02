@@ -1,4 +1,4 @@
-const { answerSheet, markSheet } = require("./dummyData");
+const { answerSheet, markSheet } = require("../dummyData");
 
 const grader = (arr1, arr2) => {
   let totalScore = 0;
@@ -36,3 +36,5 @@ const grader = (arr1, arr2) => {
 
 const gradeResult = grader(answerSheet.keyPhrases, markSheet.keyPhrases);
 console.log(gradeResult);
+
+module.exports = grader;
