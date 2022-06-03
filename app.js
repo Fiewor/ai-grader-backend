@@ -142,9 +142,13 @@ app.get("/viewGrade", async (req, res) => {
 
     const answerDoc = await answerCol.findOne();
     const markDoc = await markCol.findOne();
-
+    console.log("answerDoc", answerDoc);
     const gradeForPage = await grader(answerDoc, markDoc);
-    res.send({ grade: gradeForPage });
+    console.log("gradeForPage", gradeForPage);
+    res.send({
+      grade: gradeForPage.totalScore,
+      totalPoints: gradeForPage.totalPointsAwardable,
+    });
   } catch (err) {
     console.log(err.stack);
   } finally {

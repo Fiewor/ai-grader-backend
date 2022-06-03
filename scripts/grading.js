@@ -1,15 +1,18 @@
 const { answerSheet, markSheet } = require("../dummyData");
 
-const grader = async (arr1, arr2) => {
+const grader = async (doc1, doc2) => {
+  console.log("doc1", doc1);
   let totalScore = 0;
+  let totalPointsAwardable = 0;
 
-  for (const block1 of arr1.page) {
-    for (const block2 of arr2.page) {
+  for (const block1 of doc1.page) {
+    for (const block2 of doc2.page) {
       // check that id is the same
       // so, keyPhrase for question 1 is only compared with keyPhrase for answer 1
       if (block1.id === block2.id) {
         let grade = 0;
         let pointsAwardable = block2.phrases.length;
+        totalPointsAwardable += +block2.phrases.length;
         // let pointsAwardable = points;
         // replace pointsAwardable with points specified in marking guide
         // in format: "Points Awardable: 5"
@@ -29,11 +32,10 @@ const grader = async (arr1, arr2) => {
       }
     }
   }
-  console.log(`Total score attained in this page: ${totalScore}`);
-  return totalScore;
+  console.log(
+    `Total score attained in this page: ${totalScore}/${totalPointsAwardable}`
+  );
+  return { totalScore, totalPointsAwardable };
 };
-
-// const gradeResult = grader(answerSheet.keyPhrases, markSheet.keyPhrases);
-// console.log(gradeResult);
 
 module.exports = grader;
