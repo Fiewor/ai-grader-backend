@@ -1,56 +1,72 @@
-// // logic for compiling text and keyphrases from uploaded page and saving in mongoDB document
+// logic for compiling text and keyphrases from uploaded page and saving in mongoDB document
+// using Mongo Atlas
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri =
+  process.env.NODE_ENV === "production"
+    ? `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`
+    : `mongodb://localhost:27017`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
 
-// const client = new MongoClient(uri, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-//   serverApi: ServerApiVersion.v1,
-// });
+const { keyPhraseExtraction, readOperation } = require("./textAnalytics");
 
-// const compileAndSave = async(path, doc)=>{
-//     const textAndPhraseCompile = async() => {
-//       const readResult = await readOperation(path);
-//       let segmentArray = [];
+// extract text and keyPhrase and format as object to be saved in mongoDB
+const textAndPhraseCompile = async (path) => {
+  let segmentArray = [];
+  const result = await readOperation(path); // returns lines of read text
+  const data = result.flat();
 
-//       readResult.forEach(lineInAnswer => {
+  for (const line of data) {
+    let currentPhrase = await keyPhraseExtraction([line]);
 
-//         const phrase = await keyPhraseExtractor(lineInAnswer)
+    let textSegment = {
+      id: data.indexOf(line),
+      text: line,
+      phrases: currentPhrase.flat(),
+    };
+    console.log("textSegment", textSegment);
 
-//         let textSegment = {
-//           id: readResult.indexOf(lineInAnswer),
-//           text: lineInAnswer,
-//           phrases: phrase,
-//         }
+    segmentArray.push(textSegment);
+  }
+  return segmentArray;
+};
 
-//         segmentArray.push(textSegment)
-//       })
+const compileAndSave = async (path, doc) => {
+  let compileReceive = await textAndPhraseCompile(path);
+  console.log("compileReceive", compileReceive);
 
-//       return segmentArray;
-//     }
+  if (
+    compileReceive[0].text === undefined &&
+    compileReceive[0].phrases.length === 0
+  ) {
+    console.log("Error: There is no data to save");
+  } else {
+    try {
+      await client.connect();
+      console.log("Connected correctly to database");
+      const db = client.db("textExtract");
+      const col = db.collection(doc);
 
-//     textAndPhraseCompile().then(
-//       result => {
-//         try {
-//           await client.connect();
-//           console.log("Connected correctly to server");
-//           const db = client.db("textExtract");
-//           const col = db.collection(doc);
+      data = {
+        page: compileReceive,
+      };
 
-//           data = {
-//             page: result
-//           };
+      await col.insertOne(data);
+      const myDoc = await col.findOne();
+      if (myDoc) {
+        console.log("Document saved successfully");
+      } else {
+        throw new Error("An error occured while attempting to save document");
+      }
+    } catch (err) {
+      console.log(err.stack);
+    } finally {
+      await client.close();
+    }
+  }
+};
 
-//           const answerDoc = await col.insertOne(data);
-//           const myDoc = await col.findOne();
-//           console.log(myDoc)
-//           console.log("Document saved successfully")
-//           // res.send(myDoc);
-//         } catch(err){
-//           console.log(err.stack)
-//         } finally {
-//           await client.close();
-//         }
-//       }
-//     )
-// }
-
-// module.exports = compileAndSave;
+module.exports = { compileAndSave, textAndPhraseCompile };
