@@ -65,11 +65,21 @@ app.post(`/uploads/mark/`, (req, res) => {
     res.json({ noFile: true });
     return;
   }
-  postHandler(req, "mark");
-  res.send(
-    `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
-  );
-  compileAndSave(`${__dirname}\\uploads\\mark`, `markSheet`);
+  try {
+    res.write(
+      `${
+        !postHandler(req, "mark")
+          ? "Some mark sheets were not uploaded. Check local directory"
+          : "Mark Sheet(s) uploaded to local directory"
+      }`,
+      "utf8"
+    );
+
+    res.end();
+    compileAndSave(`${__dirname}\\uploads\\mark`, `markSheet`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 app.post(`/uploads/answer/`, (req, res) => {
@@ -95,12 +105,21 @@ app.post(`/uploads/answer/`, (req, res) => {
     res.json({ noFile: true });
     return;
   }
+  try {
+    res.write(
+      `${
+        !postHandler(req, "answer")
+          ? "Some answer sheets were not uploaded. Check local directory"
+          : "Answer Sheet(s) uploaded to local directory"
+      }`,
+      "utf8"
+    );
 
-  postHandler(req, "answer");
-  res.send(
-    `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
-  );
-  compileAndSave(`${__dirname}\\uploads\\answer`, `answerSheet`);
+    res.end();
+    compileAndSave(`${__dirname}\\uploads\\answer`, `answerSheet`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 app.get("/viewGrade", async (req, res) => {
@@ -145,14 +164,17 @@ app.get(`/viewText`, async (req, res) => {
   }
 });
 
-const postHandler = async (req, folder) => {
+const postHandler = (req, folder) => {
+  let successArray = [];
+
   for (let file of Object.values(req.files)) {
-    let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
+    let pathToFile = `${__dirname}/uploads/${folder}/${file.name}`;
 
     file.mv(pathToFile, (err) => {
-      if (err) {
-        console.log("and error is ", err);
-      }
+      if (err) return console.error(err);
+      successArray.push(`success`);
     });
   }
+
+  return successArray.every((val) => val === `success`);
 };

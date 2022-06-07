@@ -39,8 +39,9 @@ const compileAndSave = async (path, doc) => {
   console.log("compileReceive", compileReceive);
 
   if (
-    compileReceive[0].text === undefined &&
-    compileReceive[0].phrases.length === 0
+    compileReceive.length === 0 ||
+    (compileReceive[0].text === undefined &&
+      compileReceive[0].phrases.length === 0)
   ) {
     console.log("Error: There is no data to save");
   } else {
