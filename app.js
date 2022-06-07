@@ -16,6 +16,14 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const uploadClient = new S3Client({
+  // credentials: {
+  //   AccessKeyId: process.env.ACCESS_KEY_ID,
+  //   SecretAccessKey: process.env.SECRET_ACCESS_KEY,
+  // },
+  region: "us-east-1",
+});
 
 const port = process.env.PORT || 3001;
 require("dotenv").config();
@@ -69,7 +77,7 @@ app.post(`/uploads/mark/`, (req, res) => {
   res.send(
     `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
   );
-  compileAndSave(`${__dirname}\\uploads\\mark`, `markSheet`);
+  // compileAndSave(`${__dirname}\\uploads\\mark`, `markSheet`);
 });
 
 app.post(`/uploads/answer/`, (req, res) => {
@@ -100,7 +108,7 @@ app.post(`/uploads/answer/`, (req, res) => {
   res.send(
     `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
   );
-  compileAndSave(`${__dirname}\\uploads\\answer`, `answerSheet`);
+  // compileAndSave(`${__dirname}\\uploads\\answer`, `answerSheet`);
 });
 
 app.get("/viewGrade", async (req, res) => {
@@ -147,12 +155,27 @@ app.get(`/viewText`, async (req, res) => {
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
-    let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
+    // let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
 
-    file.mv(pathToFile, (err) => {
-      if (err) {
-        console.log("and error is ", err);
-      }
-    });
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: file.name,
+      Body: file,
+    };
+
+    try {
+      const results = await uploadClient.send(new PutObjectCommand(params));
+      console.log(
+        "Successfully created " +
+          params.Key +
+          " and uploaded it to " +
+          params.Bucket +
+          "/" +
+          params.Key
+      );
+      return results;
+    } catch (err) {
+      console.log(err);
+    }
   }
 };
