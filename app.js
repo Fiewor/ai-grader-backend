@@ -41,7 +41,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-app.post(`/uploads/mark/`, (req, res) => {
+app.post(`/uploads/mark/`, async (req, res) => {
   // if there's no upload folder, create one
   fs.access(`./uploads/mark`, (error) => {
     if (error) {
@@ -75,14 +75,25 @@ app.post(`/uploads/mark/`, (req, res) => {
       "utf8"
     );
 
+    const compilingAndSaving = await compileAndSave(
+      `${__dirname}\\uploads\\mark`,
+      `markSheet`
+    );
+    res.write(
+      `${
+        !compilingAndSaving
+          ? "Saving in database..."
+          : "Document saved in database!"
+      }`
+    );
+
     res.end();
-    compileAndSave(`${__dirname}\\uploads\\mark`, `markSheet`);
   } catch (err) {
     console.log(err);
   }
 });
 
-app.post(`/uploads/answer/`, (req, res) => {
+app.post(`/uploads/answer/`, async (req, res) => {
   fs.access(`./uploads/mark`, (error) => {
     if (error) {
       fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
@@ -115,8 +126,18 @@ app.post(`/uploads/answer/`, (req, res) => {
       "utf8"
     );
 
+    const compilingAndSaving = await compileAndSave(
+      `${__dirname}\\uploads\\answer`,
+      `answerSheet`
+    );
+    res.write(
+      `${
+        !compilingAndSaving
+          ? "Saving in database..."
+          : "Document saved in database!"
+      }`
+    );
     res.end();
-    compileAndSave(`${__dirname}\\uploads\\answer`, `answerSheet`);
   } catch (err) {
     console.log(err);
   }

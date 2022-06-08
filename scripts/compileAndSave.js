@@ -37,6 +37,7 @@ const textAndPhraseCompile = async (path) => {
 const compileAndSave = async (path, doc) => {
   let compileReceive = await textAndPhraseCompile(path);
   console.log("compileReceive", compileReceive);
+  let saveStatus = false;
 
   if (
     compileReceive.length === 0 ||
@@ -59,6 +60,7 @@ const compileAndSave = async (path, doc) => {
       const myDoc = await col.findOne();
       if (myDoc) {
         console.log("Document saved successfully");
+        saveStatus = true;
       } else {
         throw new Error("An error occured while attempting to save document");
       }
@@ -67,6 +69,7 @@ const compileAndSave = async (path, doc) => {
     } finally {
       await client.close();
     }
+    return saveStatus;
   }
 };
 

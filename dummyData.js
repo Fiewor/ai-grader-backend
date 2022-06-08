@@ -1,5 +1,5 @@
 // each new element in readText should begin with a number or letter (uppercase or lowercase)
-// that number (1, a, i etc) should be used as an id also in the keyphrase section
+// that number (1, a, i etc) should be used as an id also in the keyphrase section?
 
 const answerSheet = {
   page: [
