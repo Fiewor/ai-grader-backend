@@ -17,12 +17,12 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { Upload } = require("@aws-sdk/lib-storage");
+const { Readable } = require("stream");
+
+const REGION = "us-east-1";
 const uploadClient = new S3Client({
-  // credentials: {
-  //   AccessKeyId: process.env.ACCESS_KEY_ID,
-  //   SecretAccessKey: process.env.SECRET_ACCESS_KEY,
-  // },
-  region: "us-east-1",
+  region: REGION,
 });
 
 const port = process.env.PORT || 3001;
@@ -49,7 +49,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-app.post(`/uploads/mark/`, (req, res) => {
+app.post(`/uploads/mark/`, async (req, res) => {
   // if there's no upload folder, create one
   fs.access(`./uploads/mark`, (error) => {
     if (error) {
@@ -73,14 +73,19 @@ app.post(`/uploads/mark/`, (req, res) => {
     res.json({ noFile: true });
     return;
   }
-  postHandler(req, "mark");
-  res.send(
-    `mark sheet(s) uploaded successfully! Check mark folder in the project's uploads directory`
-  );
+
+  const postData = await postHandler(req, "mark");
+  postData &&
+    res.send(
+      postData.singleUploadResult["$metadata"].httpStatusCode === 200
+        ? `Mark sheet(s) uploaded to ${postData.singleUploadResult.Location}`
+        : `An error occurred while uploading file(s)`
+    );
+
   // compileAndSave(`${__dirname}\\uploads\\mark`, `markSheet`);
 });
 
-app.post(`/uploads/answer/`, (req, res) => {
+app.post(`/uploads/answer/`, async (req, res) => {
   fs.access(`./uploads/mark`, (error) => {
     if (error) {
       fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
@@ -104,10 +109,13 @@ app.post(`/uploads/answer/`, (req, res) => {
     return;
   }
 
-  postHandler(req, "answer");
-  res.send(
-    `answer sheet(s) uploaded successfully! Check answer folder in the project's uploads directory`
-  );
+  const postData = await postHandler(req, "answer");
+  postData &&
+    res.send(
+      postData.singleUploadResult["$metadata"].httpStatusCode === 200
+        ? `Answer sheet(s) uploaded to ${postData.singleUploadResult.Location}`
+        : `An error occurred while uploading file(s)`
+    );
   // compileAndSave(`${__dirname}\\uploads\\answer`, `answerSheet`);
 });
 
@@ -121,12 +129,11 @@ app.get("/viewGrade", async (req, res) => {
 
     const answerDoc = await answerCol.findOne();
     const markDoc = await markCol.findOne();
-    console.log("answerDoc", answerDoc);
     const gradeForPage = await grader(answerDoc, markDoc);
-    console.log("gradeForPage", gradeForPage);
+    const { totalScore: score, totalPointsAwardable: total } = gradeForPage;
     res.send({
-      grade: gradeForPage.totalScore,
-      totalPoints: gradeForPage.totalPointsAwardable,
+      grade: score,
+      totalPoints: total,
     });
   } catch (err) {
     console.log(err.stack);
@@ -155,25 +162,27 @@ app.get(`/viewText`, async (req, res) => {
 
 const postHandler = async (req, folder) => {
   for (let file of Object.values(req.files)) {
-    // let pathToFile = `${__dirname}/uploads/${folder}/` + file.name;
+    let fileStream = Readable.from(file.data);
 
-    const params = {
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: file.name,
-      Body: file,
+    const bucketParams = {
+      Bucket: "ai-grader",
+      Key: `${folder}/${file.name}`,
+      Body: fileStream,
     };
 
+    const upload = new Upload({
+      params: bucketParams,
+      client: uploadClient,
+      queueSize: 3,
+    });
+
     try {
-      const results = await uploadClient.send(new PutObjectCommand(params));
-      console.log(
-        "Successfully created " +
-          params.Key +
-          " and uploaded it to " +
-          params.Bucket +
-          "/" +
-          params.Key
-      );
-      return results;
+      const data = upload.on("httpUploadProgress", (progress) => {
+        console.log(progress);
+      });
+
+      await upload.done();
+      return data; // For unit tests.
     } catch (err) {
       console.log(err);
     }
