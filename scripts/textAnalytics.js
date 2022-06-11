@@ -27,28 +27,26 @@ const sleep = require("util").promisify(setTimeout);
 const getTextFromImage = async (imagePath) => {
   const STATUS_SUCCEEDED = "succeeded";
   const STATUS_FAILED = "failed";
-  let textArray = [],
-    completeText;
-
-  console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
+  let textArray = [];
+  // console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
 
   const streamResponse = await computerVisionClient
-    .readInStream(() => createReadStream(imagePath))
+    .read(imagePath)
     .then((response) => response)
     .catch((err) => console.error(err));
 
   // Get operation location from response, so you can get the operation ID.
-  const operationLocationLocal = streamResponse.operationLocation;
+  const operationLocation = streamResponse.operationLocation;
   // Get the operation ID at the end of the URL
-  const operationIdLocal = operationLocationLocal.substring(
-    operationLocationLocal.lastIndexOf("/") + 1
+  const operationId = operationLocation.substring(
+    operationLocation.lastIndexOf("/") + 1
   );
   // Wait for the read operation to finish, use the operationId to get the result.
   while (true) {
     const readOpResult = await computerVisionClient
-      .getReadResult(operationIdLocal)
+      .getReadResult(operationId)
       .then((result) => result);
-    console.log("Read status: " + readOpResult.status);
+    console.log(`Read status: ${readOpResult.status}`);
 
     if (readOpResult.status === STATUS_FAILED) {
       console.log("The Read File operation has failed.");
@@ -60,11 +58,15 @@ const getTextFromImage = async (imagePath) => {
       console.log("Read File local image result:");
       // Print the text captured
       for (const textRecResult of readOpResult.analyzeResult.readResults) {
-        for (const line of textRecResult.lines) {
-          textArray.push(line.text);
+        if (result.lines.length) {
+          for (const line of textRecResult.lines) {
+            // ! TO-DO: plug in join logic here
+            textArray.push(line.text);
+          }
+          console.log(line.words.map((word) => word.text).join(" "));
+        } else {
+          console.log("No recognized text.");
         }
-        completeText = textArray.join(" ");
-        console.log(completeText);
       }
       break;
     }
@@ -98,46 +100,29 @@ const keyPhraseExtraction = async (keyPhrasesInput) => {
   return extracted;
 };
 
-const readOperation = async (path) => {
-  let files;
-  try {
-    files = await fsPromises.readdir(path);
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-  // let section = /$[\\w]{1,}/g.test(path);
-  return Promise.all(
-    files.map(async (file) => {
-      try {
-        const results = await getTextFromImage(
-          `${__dirname}\\uploads\\${path.substr(
-            path.lastIndexOf(`\\`) + 1
-          )}\\${file}`
-        );
-        return results;
-      } catch (err) {
-        console.error(err);
-        // throw err;
-      }
-    })
-  );
-};
-
-// const keyPhraseExtractor = async (dataFromReadOperation) => {
+// const readOperation = async (path) => {
+//   let files;
 //   try {
-//     const data = await keyPhraseExtraction(
-//       textAnalyticsClient,
-//       dataFromReadOperation
-//     );
-//     return data;
+//     files = await fsPromises.readdir(path);
 //   } catch (err) {
-//     console.error(err);
+//     console.log(err);
+//     throw err;
 //   }
+//   return Promise.all(
+//     files.map(async (file) => {
+//       try {
+//         const results = await getTextFromImage(file);
+//         return results;
+//       } catch (err) {
+//         console.error(err);
+//         // throw err;
+//       }
+//     })
+//   );
 // };
 
 module.exports = {
   getTextFromImage,
   keyPhraseExtraction,
-  readOperation,
+  // readOperation,
 };

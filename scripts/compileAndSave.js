@@ -11,13 +11,19 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-const { keyPhraseExtraction, readOperation } = require("./textAnalytics");
+const {
+  keyPhraseExtraction,
+  getTextFromImage,
+  readOperation,
+} = require("./textAnalytics");
 
 // extract text and keyPhrase and format as object to be saved in mongoDB
 const textAndPhraseCompile = async (path) => {
   let segmentArray = [];
-  const result = await readOperation(path); // returns lines of read text
+  const result = await getTextFromImage(path); // returns lines of read text
   const data = result.flat();
+
+  console.log("data in textAndPhraseCompile: ", data);
 
   for (const line of data) {
     let currentPhrase = await keyPhraseExtraction([line]);

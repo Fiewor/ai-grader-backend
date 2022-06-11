@@ -86,37 +86,22 @@ app.post(`/uploads/mark/`, async (req, res) => {
 });
 
 app.post(`/uploads/answer/`, async (req, res) => {
-  fs.access(`./uploads/mark`, (error) => {
-    if (error) {
-      fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
-        error
-          ? console.log(error)
-          : console.log(
-              "Necessary directory and sub-directories created successfully"
-            )
-      );
-      fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
-        error
-          ? console.log(error)
-          : console.log(
-              "Necessary directory and sub-directories created successfully"
-            )
-      );
-    }
-  });
   if (req.files === null || undefined) {
     res.json({ noFile: true });
     return;
   }
 
   const postData = await postHandler(req, "answer");
-  postData &&
+  if (postData) {
     res.send(
       postData.singleUploadResult["$metadata"].httpStatusCode === 200
         ? `Answer sheet(s) uploaded to ${postData.singleUploadResult.Location}`
         : `An error occurred while uploading file(s)`
     );
-  // compileAndSave(`${__dirname}\\uploads\\answer`, `answerSheet`);
+    compileAndSave(postData.singleUploadResult.Location, `answerSheet`);
+  } else {
+    console.log("An error occured while attempting to upload file");
+  }
 });
 
 app.get("/viewGrade", async (req, res) => {
