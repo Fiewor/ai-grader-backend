@@ -67,12 +67,9 @@ app.post(`/uploads/mark/`, async (req, res) => {
   }
   try {
     res.write(
-      `${
-        !postHandler(req, "mark")
-          ? "Some mark sheets were not uploaded. Check local directory"
-          : "Mark Sheet(s) uploaded to local directory"
-      }`,
-      "utf8"
+      !postHandler(req, "mark")
+        ? "Some mark sheets were not uploaded. Check local directory"
+        : "Mark Sheet(s) uploaded to local directory"
     );
 
     const compilingAndSaving = await compileAndSave(
@@ -80,11 +77,9 @@ app.post(`/uploads/mark/`, async (req, res) => {
       `markSheet`
     );
     res.write(
-      `${
-        !compilingAndSaving
-          ? "Saving in database..."
-          : "Document saved in database!"
-      }`
+      !compilingAndSaving
+        ? "Saving in database..."
+        : "Document saved in database!"
     );
 
     res.end();
@@ -118,12 +113,9 @@ app.post(`/uploads/answer/`, async (req, res) => {
   }
   try {
     res.write(
-      `${
-        !postHandler(req, "answer")
-          ? "Some answer sheets were not uploaded. Check local directory"
-          : "Answer Sheet(s) uploaded to local directory"
-      }`,
-      "utf8"
+      !postHandler(req, "answer")
+        ? "Some answer sheets were not uploaded. Check local directory"
+        : "Answer Sheet(s) uploaded to local directory"
     );
 
     const compilingAndSaving = await compileAndSave(
@@ -131,11 +123,9 @@ app.post(`/uploads/answer/`, async (req, res) => {
       `answerSheet`
     );
     res.write(
-      `${
-        !compilingAndSaving
-          ? "Saving in database..."
-          : "Document saved in database!"
-      }`
+      !compilingAndSaving
+        ? "Saving in database..."
+        : "Document saved in database!"
     );
     res.end();
   } catch (err) {
