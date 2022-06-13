@@ -42,95 +42,51 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.post(`/uploads/mark/`, async (req, res) => {
-  // if there's no upload folder, create one
-  fs.access(`./uploads/mark`, (error) => {
-    if (error) {
-      fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
-        error
-          ? console.log(error)
-          : console.log(
-              "Necessary directory and sub-directories created successfully"
-            )
-      );
-      fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
-        error
-          ? console.log(error)
-          : console.log(
-              "Necessary directory and sub-directories created successfully"
-            )
-      );
-    }
-  });
   if (req.files === null || undefined) {
     res.json({ noFile: true });
     return;
   }
-  try {
-    res.write(
-      !postHandler(req, "mark")
-        ? "Some mark sheets were not uploaded. Check local directory"
-        : "Mark Sheet(s) uploaded to local directory"
-    );
 
-    const compilingAndSaving = await compileAndSave(
-      `${__dirname}\\uploads\\mark`,
-      `markSheet`
-    );
-    res.write(
-      !compilingAndSaving
-        ? "Saving in database..."
-        : "Document saved in database!"
-    );
-
-    res.end();
-  } catch (err) {
-    console.log(err);
-  }
+  fs.access(`./uploads/mark`, async (error) => {
+    if (error) {
+      await createFolder();
+      uploadAndProcess(req, res, "mark");
+    } else {
+      fs.access(`./uploads/answer`, async (error) => {
+        if (error) {
+          await createFolder();
+          uploadAndProcess(req, res, "mark");
+        } else {
+          console.log(`Accessed uploads directory`);
+          uploadAndProcess(req, res, "mark");
+        }
+      });
+    }
+  });
 });
 
 app.post(`/uploads/answer/`, async (req, res) => {
-  fs.access(`./uploads/mark`, (error) => {
-    if (error) {
-      fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
-        error
-          ? console.log(error)
-          : console.log(
-              "Necessary directory and sub-directories created successfully"
-            )
-      );
-      fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
-        error
-          ? console.log(error)
-          : console.log(
-              "Necessary directory and sub-directories created successfully"
-            )
-      );
-    }
-  });
   if (req.files === null || undefined) {
     res.json({ noFile: true });
     return;
   }
-  try {
-    res.write(
-      !postHandler(req, "answer")
-        ? "Some answer sheets were not uploaded. Check local directory"
-        : "Answer Sheet(s) uploaded to local directory"
-    );
 
-    const compilingAndSaving = await compileAndSave(
-      `${__dirname}\\uploads\\answer`,
-      `answerSheet`
-    );
-    res.write(
-      !compilingAndSaving
-        ? "Saving in database..."
-        : "Document saved in database!"
-    );
-    res.end();
-  } catch (err) {
-    console.log(err);
-  }
+  fs.access(`./uploads/answer`, async (error) => {
+    if (error) {
+      await createFolder();
+      uploadAndProcess(req, res, "answer");
+    } else {
+      fs.access(`./uploads/mark`, async (error) => {
+        if (error) {
+          await createFolder();
+          uploadAndProcess(req, res, "answer");
+        } else {
+          console.log(`Accessed uploads directory`);
+          uploadAndProcess(req, res, "answer");
+        }
+      });
+    }
+  });
 });
 
 app.get("/viewGrade", async (req, res) => {
@@ -144,11 +100,14 @@ app.get("/viewGrade", async (req, res) => {
     const answerDoc = await answerCol.findOne();
     const markDoc = await markCol.findOne();
     console.log("answerDoc", answerDoc);
-    const gradeForPage = await grader(answerDoc, markDoc);
-    console.log("gradeForPage", gradeForPage);
+    const { totalScore, totalPointsAwardable } = await grader(
+      answerDoc,
+      markDoc
+    );
+    // console.log("gradeForPage", gradeForPage);
     res.send({
-      grade: gradeForPage.totalScore,
-      totalPoints: gradeForPage.totalPointsAwardable,
+      grade: totalScore,
+      totalPoints: totalPointsAwardable,
     });
   } catch (err) {
     console.log(err.stack);
@@ -174,6 +133,49 @@ app.get(`/viewText`, async (req, res) => {
     console.log("Connection closed");
   }
 });
+
+const createFolder = async () => {
+  console.log(`Unable to access mark sub-directory`);
+  console.log(`Creating...`);
+  await fsPromises.mkdir(`./uploads/mark`, { recursive: true }, (error) =>
+    error
+      ? console.log(error)
+      : console.log(
+          "Necessary directory and sub-directories created successfully"
+        )
+  );
+  console.log(`Unable to access answer sub-directory`);
+  console.log(`Creating...`);
+  await fsPromises.mkdir(`./uploads/answer`, { recursive: true }, (error) =>
+    error
+      ? console.log(error)
+      : console.log(
+          "Necessary directory and sub-directories created successfully"
+        )
+  );
+};
+
+const uploadAndProcess = async (req, res, folder) => {
+  try {
+    res.write(
+      !postHandler(req, folder)
+        ? "Some answer sheets were not uploaded. Check local directory"
+        : "Answer Sheet(s) uploaded to local directory"
+    );
+    const compilingAndSaving = await compileAndSave(
+      `${__dirname}\\uploads\\${folder}`,
+      `answerSheet`
+    );
+    res.write(
+      !compilingAndSaving
+        ? "\nSaving in database..."
+        : "Document saved in database!"
+    );
+    res.end();
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 const postHandler = (req, folder) => {
   let successArray = [];

@@ -31,11 +31,14 @@ const getTextFromImage = async (imagePath) => {
     completeText;
 
   console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
+  const start = Date.now();
 
   const streamResponse = await computerVisionClient
     .readInStream(() => createReadStream(imagePath))
     .then((response) => response)
     .catch((err) => console.error(err));
+  const stop = Date.now();
+  console.log(`Time Taken to execute = ${(stop - start) / 1000 / 60} minutes`);
 
   // Get operation location from response, so you can get the operation ID.
   const operationLocationLocal = streamResponse.operationLocation;
@@ -106,7 +109,7 @@ const readOperation = async (path) => {
     console.log(err);
     throw err;
   }
-  // let section = /$[\\w]{1,}/g.test(path);
+
   return Promise.all(
     files.map(async (file) => {
       try {
