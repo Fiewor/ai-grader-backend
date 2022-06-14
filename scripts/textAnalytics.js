@@ -38,7 +38,7 @@ const getTextFromImage = async (imagePath) => {
     .then((response) => response)
     .catch((err) => console.error(err));
   const stop = Date.now();
-  console.log(`Time Taken to execute = ${(stop - start) / 1000 / 60} minutes`);
+  console.log(`Time Taken to execute = ${(stop - start) / 1000} seconds`);
 
   // Get operation location from response, so you can get the operation ID.
   const operationLocationLocal = streamResponse.operationLocation;
