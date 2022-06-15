@@ -27,7 +27,8 @@ const sleep = require("util").promisify(setTimeout);
 const getTextFromImage = async (imagePath) => {
   const STATUS_SUCCEEDED = "succeeded";
   const STATUS_FAILED = "failed";
-  let textArray = [];
+  let textArray = [],
+    completeText;
   // console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
 
   const streamResponse = await computerVisionClient
@@ -58,12 +59,13 @@ const getTextFromImage = async (imagePath) => {
       console.log("Read File local image result:");
       // Print the text captured
       for (const textRecResult of readOpResult.analyzeResult.readResults) {
-        if (result.lines.length) {
+        if (textRecResult.lines.length) {
           for (const line of textRecResult.lines) {
             // ! TO-DO: plug in join logic here
             textArray.push(line.text);
           }
-          console.log(line.words.map((word) => word.text).join(" "));
+          completeText = textArray.join(" ");
+          console.log(completeText);
         } else {
           console.log("No recognized text.");
         }
