@@ -20,8 +20,8 @@ const computerVisionClient = new ComputerVisionClient(
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
-const createReadStream = fs.createReadStream;
 const sleep = require("util").promisify(setTimeout);
+const joinSame = require("./joinLogic");
 
 // function to extract identifiable text from image. takes image path as argument
 const getTextFromImage = async (imagePath) => {
@@ -61,7 +61,6 @@ const getTextFromImage = async (imagePath) => {
       for (const textRecResult of readOpResult.analyzeResult.readResults) {
         if (textRecResult.lines.length) {
           for (const line of textRecResult.lines) {
-            // ! TO-DO: plug in join logic here
             textArray.push(line.text);
           }
           completeText = textArray.join(" ");
@@ -74,6 +73,7 @@ const getTextFromImage = async (imagePath) => {
     }
     await sleep(1000);
   }
+  textArray = joinSame(textArray);
   return textArray;
 };
 
@@ -102,29 +102,7 @@ const keyPhraseExtraction = async (keyPhrasesInput) => {
   return extracted;
 };
 
-// const readOperation = async (path) => {
-//   let files;
-//   try {
-//     files = await fsPromises.readdir(path);
-//   } catch (err) {
-//     console.log(err);
-//     throw err;
-//   }
-//   return Promise.all(
-//     files.map(async (file) => {
-//       try {
-//         const results = await getTextFromImage(file);
-//         return results;
-//       } catch (err) {
-//         console.error(err);
-//         // throw err;
-//       }
-//     })
-//   );
-// };
-
 module.exports = {
   getTextFromImage,
   keyPhraseExtraction,
-  // readOperation,
 };

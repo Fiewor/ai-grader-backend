@@ -33,7 +33,6 @@ const textAndPhraseCompile = async (path) => {
       text: line,
       phrases: currentPhrase.flat(),
     };
-    console.log("textSegment", textSegment);
 
     segmentArray.push(textSegment);
   }

@@ -2,8 +2,10 @@ const { answerSheet, markSheet } = require("../dummyData");
 
 const grader = async (doc1, doc2) => {
   console.log("doc1", doc1);
-  let totalScore = 0;
-  let totalPointsAwardable = 0;
+  let totalScore = 0,
+    totalPointsAwardable = 0,
+    arr = [],
+    id;
 
   for (const block1 of doc1.page) {
     for (const block2 of doc2.page) {
@@ -25,17 +27,22 @@ const grader = async (doc1, doc2) => {
             }
           });
         });
-
+        id = block1.id;
         console.log(
           `Score for question ${block1.id}: ${grade}/${pointsAwardable}`
         );
+        arr.push({
+          id,
+          grade,
+          pointsAwardable,
+        });
       }
     }
   }
   console.log(
     `Total score attained in this page: ${totalScore}/${totalPointsAwardable}`
   );
-  return { totalScore, totalPointsAwardable };
+  return { arr, totalScore, totalPointsAwardable };
 };
 
 module.exports = grader;

@@ -16,7 +16,7 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client } = require("@aws-sdk/client-s3");
 const { Upload } = require("@aws-sdk/lib-storage");
 const { Readable } = require("stream");
 
@@ -98,8 +98,13 @@ app.get("/viewGrade", async (req, res) => {
     const answerDoc = await answerCol.findOne();
     const markDoc = await markCol.findOne();
     const gradeForPage = await grader(answerDoc, markDoc);
-    const { totalScore: score, totalPointsAwardable: total } = gradeForPage;
+    const {
+      arr,
+      totalScore: score,
+      totalPointsAwardable: total,
+    } = gradeForPage;
     res.send({
+      arr,
       grade: score,
       totalPoints: total,
     });
