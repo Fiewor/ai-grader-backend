@@ -97,17 +97,28 @@ app.get("/viewGrade", async (req, res) => {
 
     const answerDoc = await answerCol.findOne();
     const markDoc = await markCol.findOne();
-    const gradeForPage = await grader(answerDoc, markDoc);
-    const {
-      arr,
-      totalScore: score,
-      totalPointsAwardable: total,
-    } = gradeForPage;
-    res.send({
-      arr,
-      grade: score,
-      totalPoints: total,
-    });
+
+    if (answerDoc) {
+      console.log("got to answerDoc", answerDoc);
+      if (markDoc) {
+        console.log("got to markDoc", markDoc);
+        const gradeForPage = await grader(answerDoc, markDoc);
+        const {
+          arr,
+          totalScore: score,
+          totalPointsAwardable: total,
+        } = gradeForPage;
+        res.send({
+          arr,
+          grade: score,
+          totalPoints: total,
+        });
+      } else {
+        ("Couldn't find mark document in database");
+      }
+    } else {
+      console.log("Couldn't answer document in database");
+    }
   } catch (err) {
     console.log(err.stack);
   } finally {

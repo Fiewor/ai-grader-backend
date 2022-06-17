@@ -11,41 +11,34 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-const {
-  keyPhraseExtraction,
-  getTextFromImage,
-  readOperation,
-} = require("./textAnalytics");
+const { keyPhraseExtraction, getTextFromImage } = require("./textAnalytics");
 
 // extract text and keyPhrase and format as object to be saved in mongoDB
 const textAndPhraseCompile = async (path) => {
+  const { joinedArray, textArray } = await getTextFromImage(path); // returns lines of read text
   let segmentArray = [];
-  const result = await getTextFromImage(path); // returns lines of read text
-  const data = result.flat();
 
-  console.log("data in textAndPhraseCompile: ", data);
-
-  for (const line of data) {
+  for (const line of joinedArray) {
     let currentPhrase = await keyPhraseExtraction([line]);
 
     let textSegment = {
-      id: data.indexOf(line),
+      id: joinedArray.indexOf(line),
       text: line,
       phrases: currentPhrase.flat(),
     };
 
     segmentArray.push(textSegment);
   }
-  return segmentArray;
+  return { segmentArray, textArray };
 };
 
 const compileAndSave = async (path, doc) => {
-  let compileReceive = await textAndPhraseCompile(path);
-  console.log("compileReceive", compileReceive);
+  let { segmentArray, textArray: rawText } = await textAndPhraseCompile(path);
+  console.log("segmentArray", segmentArray);
 
   if (
-    compileReceive[0].text === undefined &&
-    compileReceive[0].phrases.length === 0
+    segmentArray === undefined ||
+    (segmentArray[1].text === undefined && segmentArray[1].phrases.length === 0)
   ) {
     console.log("Error: There is no data to save");
   } else {
@@ -56,7 +49,7 @@ const compileAndSave = async (path, doc) => {
       const col = db.collection(doc);
 
       data = {
-        page: compileReceive,
+        page: { rawText, textByNumber: segmentArray },
       };
 
       await col.insertOne(data);

@@ -73,8 +73,9 @@ const getTextFromImage = async (imagePath) => {
     }
     await sleep(1000);
   }
-  textArray = joinSame(textArray);
-  return textArray;
+  let joinedArray = joinSame(textArray);
+
+  return { textArray, joinedArray };
 };
 
 // function to extract key phrases from provided text string
