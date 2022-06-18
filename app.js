@@ -2,6 +2,7 @@
 
 const express = require("express");
 const app = express();
+const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
 const fsPromises = fs.promises;
@@ -35,11 +36,6 @@ app.use(cors());
 
 app.listen(port, () => {
   console.log(`Server is started on port ${port}`);
-});
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  next();
 });
 
 if (process.env.NODE_ENV === "production") {
