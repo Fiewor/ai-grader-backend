@@ -31,6 +31,7 @@ const grader = require("./scripts/grading");
 const { compileAndSave } = require("./scripts/compileAndSave");
 
 app.use(fileUpload());
+app.use(cors());
 
 app.listen(port, () => {
   console.log(`Server is started on port ${port}`);

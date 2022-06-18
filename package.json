@@ -1,7 +1,7 @@
 {
   "name": "ai-grader-backend",
   "version": "1.0.0",
-  "description": "backend for AI-Grader",
+  "description": "Backend for AI-Grader - an ai service for grading handwritten tests",
   "main": "index.js",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.100.0",
@@ -10,6 +10,7 @@
     "@azure/cognitiveservices-computervision": "^8.1.0",
     "async": "^3.2.1",
     "axios": "^0.22.0",
+    "cors": "^2.8.5",
     "debug": "^4.3.2",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
@@ -28,10 +29,20 @@
     "type": "git",
     "url": "git+https://github.com/Fiewor/ai-grader-backend.git"
   },
-  "author": "John Fiewor",
+  "author": {
+    "name": "John Fiewor",
+    "email": "johnfiewor@gmail.com",
+    "url": "https://github.com/Fiewor"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Fiewor/ai-grader-backend/issues"
   },
-  "homepage": "https://github.com/Fiewor/ai-grader-backend"
+  "homepage": "https://github.com/Fiewor/ai-grader-backend",
+  "keywords": [
+    "grading",
+    "machine learning",
+    "ai",
+    "azure-ai"
+  ]
 }
