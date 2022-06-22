@@ -32,7 +32,7 @@ const textAndPhraseCompile = async (path) => {
   return { segmentArray, textArray };
 };
 
-const compileAndSave = async (path, doc) => {
+const compileAndSave = async (fileName, path, doc) => {
   let { segmentArray, textArray: rawText } = await textAndPhraseCompile(path);
   console.log("segmentArray", segmentArray);
 
@@ -49,7 +49,7 @@ const compileAndSave = async (path, doc) => {
       const col = db.collection(doc);
 
       data = {
-        page: { rawText, textByNumber: segmentArray },
+        page: { fileName, rawText, textByNumber: segmentArray },
       };
 
       await col.insertOne(data);

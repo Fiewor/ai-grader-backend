@@ -64,7 +64,10 @@ app.post(`/uploads/mark/`, async (req, res) => {
         ? `Mark sheet(s) uploaded to ${postData.singleUploadResult.Location}`
         : `An error occurred while uploading file(s)`
     );
-    compileAndSave(postData.singleUploadResult.Location, `markSheet`);
+    let fileName = postData.params.Key.substring(
+      postData.params.Key.lastIndexOf("/") + 1
+    );
+    compileAndSave(fileName, postData.singleUploadResult.Location, `markSheet`);
   } else {
     console.log("An error occured while attempting to upload file");
   }
@@ -83,7 +86,14 @@ app.post(`/uploads/answer/`, async (req, res) => {
         ? `Answer sheet(s) uploaded to ${postData.singleUploadResult.Location}`
         : `An error occurred while uploading file(s)`
     );
-    compileAndSave(postData.singleUploadResult.Location, `answerSheet`);
+    let fileName = postData.params.Key.substring(
+      postData.params.Key.lastIndexOf("/") + 1
+    );
+    compileAndSave(
+      fileName,
+      postData.singleUploadResult.Location,
+      `answerSheet`
+    );
   } else {
     console.log("An error occured while attempting to upload file");
   }
@@ -101,9 +111,9 @@ app.get("/viewGrade", async (req, res) => {
     const markDoc = await markCol.findOne();
 
     if (answerDoc) {
-      console.log("got to answerDoc", answerDoc);
+      console.log("got to answerDoc");
       if (markDoc) {
-        console.log("got to markDoc", markDoc);
+        console.log("got to markDoc");
         const gradeForPage = await grader(answerDoc, markDoc);
         const {
           arr,
@@ -119,7 +129,7 @@ app.get("/viewGrade", async (req, res) => {
         ("Couldn't find mark document in database");
       }
     } else {
-      console.log("Couldn't answer document in database");
+      console.log("Couldn't find answer document in database");
     }
   } catch (err) {
     console.log(err.stack);
