@@ -99,6 +99,28 @@ app.post(`/uploads/answer/`, async (req, res) => {
   }
 });
 
+app.post(`/uploads/text/`, async (req, res) => {
+  if (req.files === null || undefined) {
+    res.json({ noFile: true });
+    return;
+  }
+
+  const postData = await postHandler(req, "text");
+  if (postData) {
+    res.send(
+      postData.singleUploadResult["$metadata"].httpStatusCode === 200
+        ? `File uploaded to ${postData.singleUploadResult.Location}`
+        : `An error occurred while uploading file(s)`
+    );
+    let fileName = postData.params.Key.substring(
+      postData.params.Key.lastIndexOf("/") + 1
+    );
+    compileAndSave(fileName, postData.singleUploadResult.Location, `text`);
+  } else {
+    console.log("An error occured while attempting to upload file");
+  }
+});
+
 app.get("/viewGrade", async (req, res) => {
   try {
     await client.connect();
@@ -142,18 +164,31 @@ app.get(`/viewText`, async (req, res) => {
   try {
     await client.connect();
     console.log("Connected successfully to database");
-    const answerDoc = await client
+    // extract all documents from DB
+    const count = await client
       .db("textExtract")
       .collection("answerSheet")
-      .findOne();
+      .countDocuments();
+    console.log("count", count);
+    const doc = client.db("textExtract").collection("answerSheet").findOne({});
 
-    res.send(answerDoc);
+    count === 0
+      ? res.send({
+          page: {
+            _id: "nu113mpty",
+            fileName: "empty",
+            rawText: ["No text in collection"],
+            textByNumber: ["No", "text", "in", "collection"],
+          },
+        })
+      : res.send(doc);
   } catch (err) {
     console.log(err.stack);
-  } finally {
-    await client.close();
-    console.log("Connection closed");
   }
+  // finally {
+  //   await client.close();
+  //   console.log("Connection closed");
+  // }
 });
 
 const postHandler = async (req, folder) => {
