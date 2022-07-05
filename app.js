@@ -146,7 +146,7 @@ app.get(`/texts/:id`, async (req, res) => {
     await client.connect();
     console.log("Connected successfully to database");
     // extract specific documents from DB
-    const cursor = await client
+    const cursor = client
       .db("textExtract")
       .collection("answerSheet")
       .find({ _id: new ObjectId(id) });
