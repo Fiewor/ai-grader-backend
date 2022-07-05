@@ -7,7 +7,7 @@ const fileUpload = require("express-fileupload");
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri =
   process.env.NODE_ENV === "production"
     ? `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`
@@ -50,76 +50,38 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(__dirname, "build", "index.html"));
   });
 }
+const uploadRoute = (section) => {
+  app.post(`/uploads/${section}/`, async (req, res) => {
+    if (req.files === null || req.files === undefined) {
+      res.json({ noFile: true });
+      return;
+    }
 
-app.post(`/uploads/mark/`, async (req, res) => {
-  if (req.files === null || req.files === undefined) {
-    res.json({ noFile: true });
-    return;
-  }
+    const postData = await postHandler(req, section);
+    if (postData) {
+      res.send(
+        postData.singleUploadResult["$metadata"].httpStatusCode === 200
+          ? `${section} sheet(s) uploaded to ${postData.singleUploadResult.Location}`
+          : `An error occurred while uploading file(s)`
+      );
+      let fileName = postData.params.Key.substring(
+        postData.params.Key.lastIndexOf("/") + 1,
+        postData.params.Key.lastIndexOf(".")
+      );
+      compileAndSave(
+        fileName,
+        postData.singleUploadResult.Location,
+        `${section}Sheet`
+      );
+    } else {
+      console.log("An error occured while attempting to upload file");
+    }
+  });
+};
 
-  const postData = await postHandler(req, "mark");
-  if (postData) {
-    res.send(
-      postData.singleUploadResult["$metadata"].httpStatusCode === 200
-        ? `Mark sheet(s) uploaded to ${postData.singleUploadResult.Location}`
-        : `An error occurred while uploading file(s)`
-    );
-    let fileName = postData.params.Key.substring(
-      postData.params.Key.lastIndexOf("/") + 1
-    );
-    compileAndSave(fileName, postData.singleUploadResult.Location, `markSheet`);
-  } else {
-    console.log("An error occured while attempting to upload file");
-  }
-});
-
-app.post(`/uploads/answer/`, async (req, res) => {
-  if (req.files === null || undefined) {
-    res.json({ noFile: true });
-    return;
-  }
-
-  const postData = await postHandler(req, "answer");
-  if (postData) {
-    res.send(
-      postData.singleUploadResult["$metadata"].httpStatusCode === 200
-        ? `Answer sheet(s) uploaded to ${postData.singleUploadResult.Location}`
-        : `An error occurred while uploading file(s)`
-    );
-    let fileName = postData.params.Key.substring(
-      postData.params.Key.lastIndexOf("/") + 1
-    );
-    compileAndSave(
-      fileName,
-      postData.singleUploadResult.Location,
-      `answerSheet`
-    );
-  } else {
-    console.log("An error occured while attempting to upload file");
-  }
-});
-
-app.post(`/uploads/text/`, async (req, res) => {
-  if (req.files === null || undefined) {
-    res.json({ noFile: true });
-    return;
-  }
-
-  const postData = await postHandler(req, "text");
-  if (postData) {
-    res.send(
-      postData.singleUploadResult["$metadata"].httpStatusCode === 200
-        ? `File uploaded to ${postData.singleUploadResult.Location}`
-        : `An error occurred while uploading file(s)`
-    );
-    let fileName = postData.params.Key.substring(
-      postData.params.Key.lastIndexOf("/") + 1
-    );
-    compileAndSave(fileName, postData.singleUploadResult.Location, `text`);
-  } else {
-    console.log("An error occured while attempting to upload file");
-  }
-});
+uploadRoute("mark");
+uploadRoute("answer");
+uploadRoute("text");
 
 app.get("/viewGrade", async (req, res) => {
   try {
@@ -160,17 +122,37 @@ app.get("/viewGrade", async (req, res) => {
   }
 });
 
-app.get(`/viewText`, async (req, res) => {
+app.get(`/texts`, async (req, res) => {
   try {
     await client.connect();
     console.log("Connected successfully to database");
     // extract all documents from DB
-    const count = await client
+    const cursor = client.db("textExtract").collection("answerSheet").find();
+    const count = await cursor.count();
+    const doc = await cursor.toArray();
+
+    count === 0 ? res.send(["Empty"]) : res.send(doc);
+  } catch (err) {
+    console.log(err.stack);
+  } finally {
+    await client.close();
+    console.log("Connection closed");
+  }
+});
+
+app.get(`/texts/:id`, async (req, res) => {
+  let { id } = req.params;
+  try {
+    await client.connect();
+    console.log("Connected successfully to database");
+    // extract specific documents from DB
+    const cursor = await client
       .db("textExtract")
       .collection("answerSheet")
-      .countDocuments();
-    console.log("count", count);
-    const doc = client.db("textExtract").collection("answerSheet").findOne({});
+      .find({ _id: new ObjectId(id) });
+
+    const count = await cursor.count();
+    const doc = await cursor.toArray();
 
     count === 0
       ? res.send({
@@ -184,11 +166,10 @@ app.get(`/viewText`, async (req, res) => {
       : res.send(doc);
   } catch (err) {
     console.log(err.stack);
+  } finally {
+    await client.close();
+    console.log("Connection closed");
   }
-  // finally {
-  //   await client.close();
-  //   console.log("Connection closed");
-  // }
 });
 
 const postHandler = async (req, folder) => {
