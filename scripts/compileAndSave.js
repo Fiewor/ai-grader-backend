@@ -38,7 +38,7 @@ const compileAndSave = async (fileName, path, doc) => {
 
   if (
     segmentArray === undefined ||
-    (segmentArray[1].text === undefined && segmentArray[1].phrases.length === 0)
+    (segmentArray[0].text === undefined && segmentArray[0].phrases.length === 0)
   ) {
     console.log("Error: There is no data to save");
   } else {
