@@ -51,7 +51,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 const uploadRoute = (section) => {
-  app.post(`/uploads/${section}/`, async (req, res) => {
+  app.post(`/api/uploads/${section}/`, async (req, res) => {
     if (req.files === null || req.files === undefined) {
       res.json({ noFile: true });
       return;
@@ -83,7 +83,7 @@ uploadRoute("mark");
 uploadRoute("answer");
 uploadRoute("text");
 
-app.get("/viewGrade", async (req, res) => {
+app.get("/api/viewGrade", async (req, res) => {
   try {
     await client.connect();
     console.log("Connected correctly to database");
@@ -122,7 +122,7 @@ app.get("/viewGrade", async (req, res) => {
   }
 });
 
-app.get(`/texts`, async (req, res) => {
+app.get(`/api/texts`, async (req, res) => {
   try {
     await client.connect();
     console.log("Connected successfully to database");
@@ -140,7 +140,7 @@ app.get(`/texts`, async (req, res) => {
   }
 });
 
-app.get(`/texts/:id`, async (req, res) => {
+app.get(`/api/texts/:id`, async (req, res) => {
   let { id } = req.params;
   try {
     await client.connect();
