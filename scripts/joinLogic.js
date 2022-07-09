@@ -16,8 +16,7 @@ const joinSame = (arr) => {
   let finalArr = [];
 
   const splitByDelimiter = arr
-    .reduce((currString, nextString) => `${currString} ${nextString}`)
-    // .split(/(\d|\w){1}[.|)]/gi)
+    .reduce((currString, nextString) => `${currString} ${nextString}`, "")
     .split(/(\d|\w){1}[)]/gi)
     .filter((string) => string !== "");
 
