@@ -29,13 +29,7 @@ const getTextFromImage = async (imagePath) => {
   const STATUS_FAILED = "failed";
   let textArray = [],
     completeText;
-<<<<<<< HEAD
-
-  console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
-  const start = Date.now();
-=======
   // console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
->>>>>>> aws-upload
 
   const streamResponse = await computerVisionClient
     .read(imagePath)
@@ -111,47 +105,6 @@ const keyPhraseExtraction = async (keyPhrasesInput) => {
   return extracted;
 };
 
-<<<<<<< HEAD
-const readOperation = async (path) => {
-  let files;
-  try {
-    files = await fsPromises.readdir(path);
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-
-  return Promise.all(
-    files.map(async (file) => {
-      try {
-        const results = await getTextFromImage(
-          `${__dirname}\\uploads\\${path.substr(
-            path.lastIndexOf(`\\`) + 1
-          )}\\${file}`
-        );
-        return results;
-      } catch (err) {
-        console.error(err);
-        // throw err;
-      }
-    })
-  );
-};
-
-// const keyPhraseExtractor = async (dataFromReadOperation) => {
-//   try {
-//     const data = await keyPhraseExtraction(
-//       textAnalyticsClient,
-//       dataFromReadOperation
-//     );
-//     return data;
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
-
-=======
->>>>>>> aws-upload
 module.exports = {
   getTextFromImage,
   keyPhraseExtraction,
