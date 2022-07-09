@@ -20,8 +20,8 @@ const computerVisionClient = new ComputerVisionClient(
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
-const createReadStream = fs.createReadStream;
 const sleep = require("util").promisify(setTimeout);
+const joinSame = require("./joinLogic");
 
 // function to extract identifiable text from image. takes image path as argument
 const getTextFromImage = async (imagePath) => {
@@ -29,29 +29,33 @@ const getTextFromImage = async (imagePath) => {
   const STATUS_FAILED = "failed";
   let textArray = [],
     completeText;
+<<<<<<< HEAD
 
   console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
   const start = Date.now();
+=======
+  // console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
+>>>>>>> aws-upload
 
   const streamResponse = await computerVisionClient
-    .readInStream(() => createReadStream(imagePath))
+    .read(imagePath)
     .then((response) => response)
     .catch((err) => console.error(err));
   const stop = Date.now();
   console.log(`Time Taken to execute = ${(stop - start) / 1000} seconds`);
 
   // Get operation location from response, so you can get the operation ID.
-  const operationLocationLocal = streamResponse.operationLocation;
+  const operationLocation = streamResponse.operationLocation;
   // Get the operation ID at the end of the URL
-  const operationIdLocal = operationLocationLocal.substring(
-    operationLocationLocal.lastIndexOf("/") + 1
+  const operationId = operationLocation.substring(
+    operationLocation.lastIndexOf("/") + 1
   );
   // Wait for the read operation to finish, use the operationId to get the result.
   while (true) {
     const readOpResult = await computerVisionClient
-      .getReadResult(operationIdLocal)
+      .getReadResult(operationId)
       .then((result) => result);
-    console.log("Read status: " + readOpResult.status);
+    console.log(`Read status: ${readOpResult.status}`);
 
     if (readOpResult.status === STATUS_FAILED) {
       console.log("The Read File operation has failed.");
@@ -63,17 +67,23 @@ const getTextFromImage = async (imagePath) => {
       console.log("Read File local image result:");
       // Print the text captured
       for (const textRecResult of readOpResult.analyzeResult.readResults) {
-        for (const line of textRecResult.lines) {
-          textArray.push(line.text);
+        if (textRecResult.lines.length) {
+          for (const line of textRecResult.lines) {
+            textArray.push(line.text);
+          }
+          completeText = textArray.join(" ");
+          console.log(completeText);
+        } else {
+          console.log("No recognized text.");
         }
-        completeText = textArray.join(" ");
-        console.log(completeText);
       }
       break;
     }
     await sleep(1000);
   }
-  return textArray;
+  let joinedArray = joinSame(textArray);
+
+  return { textArray, joinedArray };
 };
 
 // function to extract key phrases from provided text string
@@ -101,6 +111,7 @@ const keyPhraseExtraction = async (keyPhrasesInput) => {
   return extracted;
 };
 
+<<<<<<< HEAD
 const readOperation = async (path) => {
   let files;
   try {
@@ -139,8 +150,9 @@ const readOperation = async (path) => {
 //   }
 // };
 
+=======
+>>>>>>> aws-upload
 module.exports = {
   getTextFromImage,
   keyPhraseExtraction,
-  readOperation,
 };
