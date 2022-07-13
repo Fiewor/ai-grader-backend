@@ -1,15 +1,5 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const uri =
-  process.env.NODE_ENV === "production"
-    ? `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`
-    : `mongodb://localhost:27017`;
-const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1,
-});
 const grader = require("../scripts/grading");
-const { AnswerSheet, MarkSheet, Text } = require("../models/textModel");
+const { AnswerSheet, MarkSheet } = require("../models/textModel");
 
 // @desc    Get grades
 // @route   GET /api/viewGrade
@@ -44,8 +34,6 @@ const getGrades = async (req, res) => {
     }
   } catch (err) {
     console.log(err.stack);
-  } finally {
-    await client.close();
   }
 };
 
