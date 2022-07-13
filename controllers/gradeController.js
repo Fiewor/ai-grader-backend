@@ -9,20 +9,17 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 const grader = require("../scripts/grading");
+const { AnswerSheet, MarkSheet, Text } = require("../models/textModel");
 
 // @desc    Get grades
 // @route   GET /api/viewGrade
 // @access  Public
 const getGrades = async (req, res) => {
   try {
-    await client.connect();
-    console.log("Connected correctly to database");
     // get page from db - later, filter by page id
-    const answerCol = client.db("textExtract").collection("answerSheet");
-    const markCol = client.db("textExtract").collection("markSheet");
 
-    const answerDoc = await answerCol.findOne();
-    const markDoc = await markCol.findOne();
+    const answerDoc = await AnswerSheet.findOne();
+    const markDoc = await MarkSheet.findOne();
 
     if (answerDoc) {
       console.log("got to answerDoc");
