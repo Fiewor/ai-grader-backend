@@ -7,6 +7,10 @@ const getAllText = async (req, res) => {
   try {
     // extract all documents from DB
     const doc = await AnswerSheet.find({}, { page: { fileName: 1 } });
+    // const doc = await AnswerSheet.find(
+    //   { user: req.user.id },
+    //   { page: { fileName: 1 } } //projection
+    // );
 
     !doc ? res.send(["Empty"]) : res.send(doc);
   } catch (err) {
