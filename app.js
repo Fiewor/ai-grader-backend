@@ -16,6 +16,7 @@ require("dotenv").config();
 const gradeRoute = require(`./routes/gradeRoute`);
 const textRoute = require(`./routes/textRoute`);
 const uploadRoute = require(`./routes/uploadRoute`);
+const userRoute = require(`./routes/userRoute`);
 
 connectDB();
 
@@ -39,6 +40,7 @@ if (process.env.NODE_ENV === "production") {
 app.use("/api/texts", textRoute);
 app.use("/api/viewGrade", gradeRoute);
 app.use("/api/uploads", uploadRoute);
+app.use("/api/users", userRoute);
 
 app.listen(port, () => {
   console.log(`Server is started on port ${port}`);

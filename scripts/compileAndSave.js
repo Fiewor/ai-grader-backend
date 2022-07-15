@@ -1,15 +1,4 @@
 // logic for compiling text and keyphrases from uploaded page and saving in mongoDB document
-// using Mongo Atlas
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const uri =
-  process.env.NODE_ENV === "production"
-    ? `mongodb+srv://john:${process.env.MONGODB_ATLAS_KEY}@grader.pxgmt.mongodb.net/test?retryWrites=true&w=majority`
-    : `mongodb://localhost:27017`;
-const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1,
-});
 
 const { keyPhraseExtraction, getTextFromImage } = require("./textAnalytics");
 
@@ -43,16 +32,12 @@ const compileAndSave = async (fileName, path, doc) => {
     console.log("Error: There is no data to save");
   } else {
     try {
-      await client.connect();
-      console.log("Connected correctly to database");
-      const db = client.db("textExtract");
-      const col = db.collection(doc);
-
       data = {
+        user: req.user.id,
         page: { fileName, rawText, textByNumber: segmentArray },
       };
 
-      await col.insertOne(data);
+      await col.create(data);
       const myDoc = await col.findOne();
       if (myDoc) {
         console.log("Document saved successfully");
@@ -62,8 +47,6 @@ const compileAndSave = async (fileName, path, doc) => {
       }
     } catch (err) {
       console.log(err.stack);
-    } finally {
-      await client.close();
     }
     return saveStatus;
   }
