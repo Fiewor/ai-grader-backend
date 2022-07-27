@@ -19,7 +19,6 @@ const computerVisionClient = new ComputerVisionClient(
 );
 const fs = require("fs");
 const fsPromises = fs.promises;
-const path = require("path");
 const sleep = require("util").promisify(setTimeout);
 const joinSame = require("./joinLogic");
 
@@ -29,7 +28,7 @@ const getTextFromImage = async (imagePath) => {
   const STATUS_FAILED = "failed";
   let textArray = [],
     completeText;
-  // console.log(`Reading local image for text in ...${path.basename(imagePath)}`);
+  console.log(`Reading image for text in ...${imagePath}`);
 
   const streamResponse = await computerVisionClient
     .read(imagePath)
@@ -64,7 +63,7 @@ const getTextFromImage = async (imagePath) => {
             textArray.push(line.text);
           }
           completeText = textArray.join(" ");
-          console.log(completeText);
+          console.log("completeText", completeText);
         } else {
           console.log("No recognized text.");
         }
@@ -92,8 +91,8 @@ const keyPhraseExtraction = async (keyPhrasesInput) => {
       throw new Error("Unable to extract key phrases");
     } else {
       for (const document of keyPhraseResult) {
-        // console.log(`ID: ${document.id}`);
-        // console.log(`\tDocument Key Phrases: ${document.keyPhrases}`);
+        console.log(`ID: ${document.id}`);
+        console.log(`\tDocument Key Phrases: ${document.keyPhrases}`);
         extracted.push(document.keyPhrases);
       }
     }

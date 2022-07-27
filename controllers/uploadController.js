@@ -7,6 +7,7 @@ const uploadClient = new S3Client({
 });
 
 const { compileAndSave } = require("../scripts/compileAndSave");
+const { AnswerSheet, MarkSheet, Text } = require("../models/textModel");
 
 // @desc    Upload mark text
 // @route   GET /api/uploads/mark
@@ -29,7 +30,7 @@ const uploadMark = async (req, res) => {
       postData.params.Key.lastIndexOf("/") + 1,
       postData.params.Key.lastIndexOf(".")
     );
-    compileAndSave(fileName, postData.singleUploadResult.Location, `markSheet`);
+    compileAndSave(fileName, postData.singleUploadResult.Location, MarkSheet);
   } else {
     console.log("An error occured while attempting to upload file");
   }
@@ -56,11 +57,7 @@ const uploadAnswer = async (req, res) => {
       postData.params.Key.lastIndexOf("/") + 1,
       postData.params.Key.lastIndexOf(".")
     );
-    compileAndSave(
-      fileName,
-      postData.singleUploadResult.Location,
-      `answerSheet`
-    );
+    compileAndSave(fileName, postData.singleUploadResult.Location, AnswerSheet);
   } else {
     console.log("An error occured while attempting to upload file");
   }
@@ -88,7 +85,7 @@ const uploadText = async (req, res) => {
       postData.params.Key.lastIndexOf("/") + 1,
       postData.params.Key.lastIndexOf(".")
     );
-    compileAndSave(fileName, postData.singleUploadResult.Location, `text`);
+    compileAndSave(fileName, postData.singleUploadResult.Location, Text);
   } else {
     console.log("An error occured while attempting to upload file");
   }

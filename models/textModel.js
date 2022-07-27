@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const pageSchema = mongoose.Schema(
   {
+    // associate user with page to know which user create a page?
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
     page: {
       fileName: String,
       rawText: [String],
