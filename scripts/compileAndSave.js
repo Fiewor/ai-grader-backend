@@ -23,6 +23,7 @@ const textAndPhraseCompile = async (path) => {
 
 const compileAndSave = async (fileName, path, doc) => {
   let { segmentArray, textArray: rawText } = await textAndPhraseCompile(path);
+  let saveStatus = false;
   console.log("segmentArray", segmentArray);
 
   if (
