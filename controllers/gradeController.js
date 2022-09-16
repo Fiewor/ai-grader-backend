@@ -6,7 +6,7 @@ const { AnswerSheet, MarkSheet } = require("../models/textModel");
 // @access  Public
 const getGrades = async (req, res) => {
   try {
-    // get page from db - later, filter by page id
+    //* get page from db - later, filter by page id using `.find({user: req.user.id})` instead of `.findOne()`
 
     const answerDoc = await AnswerSheet.findOne();
     const markDoc = await MarkSheet.findOne();
