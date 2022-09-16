@@ -32,14 +32,15 @@ const compileAndSave = async (fileName, path, doc) => {
   ) {
     console.log("Error: There is no data to save");
   } else {
+    let user;
     try {
       data = {
-        user: req.user.id,
+        user: user ? req.user.id : null,
         page: { fileName, rawText, textByNumber: segmentArray },
       };
 
-      await col.create(data);
-      const myDoc = await col.findOne();
+      await doc.create(data);
+      const myDoc = await doc.findOne();
       if (myDoc) {
         console.log("Document saved successfully");
         saveStatus = true;
