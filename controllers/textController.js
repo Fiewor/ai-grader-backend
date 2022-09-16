@@ -7,6 +7,10 @@ const getAllText = async (req, res) => {
   try {
     // extract all documents from DB
     const doc = await AnswerSheet.find({}, { page: { fileName: 1 } });
+
+    // ! Uncomment below code segment to get text for logged-in user
+    // ? It has been commented out because the programmer is trying to figure out
+    // ? how to properly go about associating text upload and retrieval with the user auth
     // const doc = await AnswerSheet.find(
     //   { user: req.user.id },
     //   { page: { fileName: 1 } } //projection
