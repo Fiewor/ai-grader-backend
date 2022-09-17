@@ -5,7 +5,7 @@ const pageSchema = mongoose.Schema(
     // associate user with page to know which user create a page?
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      // required: true,
       ref: "User",
     },
     page: {
