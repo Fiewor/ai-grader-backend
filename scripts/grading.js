@@ -1,6 +1,6 @@
 // grading.js
 
-const { answerSheet, markSheet } = require("../dummyData");
+// const { answerSheet, markSheet } = require("../dummyData");
 const synonyms = require("synonyms");
 
 const grader = async (doc1, doc2) => {
@@ -9,6 +9,7 @@ const grader = async (doc1, doc2) => {
 
   let totalScore = 0,
     totalPointsAwardable = 0,
+    pointsAwardable,
     arr = [],
     id,
     score,
@@ -16,82 +17,87 @@ const grader = async (doc1, doc2) => {
 
   for (const block1 of doc1Details) {
     for (const block2 of doc2Details) {
+      console.log("block2 ", block2.phrases.length);
       // check that id is the same
       // so, keyPhrase for question 1 is only compared with keyPhrase for answer 1
-      if (block1.id === block2.id) {
-        let grade = 0;
-        // if points/marks are specified at the end of the marking guide,
-        // then use those as the maximum mark attainable for that question's answer,
-        // if not use the length i.e number of keyphrases present in the particular answer
-        let pointsCheck = /\(\d+[ ]?((mark)|(point)s?)/.exec(block2.text);
-        if (pointsCheck) {
-          pointsAwardable = pointsCheck[0]
-            .split("")
-            .filter((char) => !isNaN(char))
-            .join("");
-        } else {
-          pointsAwardable = block2.phrases.length;
-        }
+      // if (block1.id === block2.id) {
+      let grade = 0;
+      // if points/marks are specified at the end of the marking guide,
+      // then use those as the maximum mark attainable for that question's answer,
+      // if not use the length i.e number of keyphrases present in the particular answer
+      let pointsCheck = /\(\d+[ ]?((mark)|(point)s?)/.exec(block2.text);
 
-        totalPointsAwardable += +pointsAwardable;
-        if (block1.phrases.every((phrase) => block2.phrases.includes(phrase))) {
-          grade = pointsAwardable;
-        } else {
-          block1.phrases.forEach((blockphrase1, blockphrase1Index) => {
-            block2.phrases.forEach((block2phrase, blockphrase1Index) => {
-              if (blockphrase1 === block2phrase) {
-                grade++;
-              } else {
-                let synonymObject = synonyms(blockphrase1);
-                if (synonymObject) {
-                  if (synonymObject.v) {
-                    for (let word of synonymObject.v) {
-                      if (word === block2phrase) grade++;
-                    }
-                  }
-                  if (synonymObject.r) {
-                    for (let word of synonymObject.r) {
-                      if (word === block2phrase) grade++;
-                    }
-                  }
-                  if (synonymObject.n) {
-                    for (let word of synonymObject.n) {
-                      if (word === block2phrase) grade++;
-                    }
-                  }
-                } else {
-                  console.log(`No synonym found for keyword`);
-                }
-              }
-            });
+      if (pointsCheck) {
+        pointsAwardable = pointsCheck[0]
+          .split("")
+          .filter((char) => !isNaN(char))
+          .join("");
+      } else {
+        console.log("length of block: ", block2.phrases.length);
+        pointsAwardable = block2.phrases.length;
+      }
+
+      totalPointsAwardable += +pointsAwardable;
+      console.log("pointsAwardable: ", pointsAwardable);
+      // every keyphrase in the student's sheet for a particular question is present in the marking guide answer for that question
+      if (block1.phrases.every((phrase) => block2.phrases.includes(phrase))) {
+        grade = pointsAwardable; // award full marks for that question
+      } else {
+        block1.phrases.forEach((answerPhrase) => {
+          block2.phrases.forEach((markingGuidePhrase) => {
+            if (answerPhrase === markingGuidePhrase) {
+              grade++;
+            }
+            // ! Logic for comparing keywords to synonyms
+            // else {
+            //   // check if the student's answer (keyword) is a synonym to a marking guide (keyword) answer
+            //   let synonymObject = synonyms(answerPhrase);
+            //   if (synonymObject) {
+            //     if (synonymObject.v) {
+            //       for (let word of synonymObject.v) {
+            //         if (word === markingGuidePhrase) grade++;
+            //       }
+            //     }
+            //     if (synonymObject.r) {
+            //       for (let word of synonymObject.r) {
+            //         if (word === markingGuidePhrase) grade++;
+            //       }
+            //     }
+            //     if (synonymObject.n) {
+            //       for (let word of synonymObject.n) {
+            //         if (word === markingGuidePhrase) grade++;
+            //       }
+            //     }
+            //   } else {
+            //     console.log(`No synonym found for keyword`);
+            //   }
+            // }
           });
-        }
-        if (grade > Math.round(pointsAwardable / 2) - leniencyScore) {
-          score = Math.round(grade + grade / pointsAwardable);
-        }
-        if (grade < Math.round(pointsAwardable / 2) - leniencyScore) {
-          score = grade + leniencyScore;
-        }
-        score = grade;
-        totalScore += +score;
-
-        // all keywords in a particular (answer) block are exactly the same words as those in marking guide
-        // and number or words in answer document are exactly the same as the number of words in marking guide
-        // if (block1.phrases.length === block2.phrases.length) {
-        // }
-
-        id = block1.id;
-        console.log(
-          `Score for question ${block1.id}: ${score}/${pointsAwardable}`
-        );
-        arr.push({
-          id,
-          score,
-          pointsAwardable,
         });
       }
+      // ! Leniency computation - logic for adding extra 'benevolent' marks
+      // if (grade > Math.round(pointsAwardable / 2) - leniencyScore) {
+      //   score = Math.round(grade + (grade / pointsAwardable));
+      // }
+      // if (grade < Math.round(pointsAwardable / 2) - leniencyScore) {
+      //   score = grade + leniencyScore;
+      // }
+      score = grade; // score for a particular question
+      totalScore += +score; // total score for all questions in a page
+
+      id = block1.id;
+      console.log(
+        `Score for question ${block1.id}: ${score}/${pointsAwardable}`
+      );
+      arr.push({
+        id,
+        score,
+        pointsAwardable,
+      });
+      // }
     }
   }
+
   console.log(
     `Total score attained in this page: ${totalScore}/${totalPointsAwardable}`
   );
@@ -99,5 +105,4 @@ const grader = async (doc1, doc2) => {
 };
 
 // console.log(grader(answerSheet, markSheet));
-
 module.exports = grader;
