@@ -17,6 +17,8 @@ const gradeRoute = require(`./routes/gradeRoute`);
 const textRoute = require(`./routes/textRoute`);
 const uploadRoute = require(`./routes/uploadRoute`);
 const userRoute = require(`./routes/userRoute`);
+const markRoute = require(`./routes/markRoute`);
+const allUploadsRoute = require(`./routes/allUploadsRoute`);
 
 connectDB();
 
@@ -37,10 +39,15 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
 app.use("/api/texts", textRoute);
 app.use("/api/viewGrade", gradeRoute);
 app.use("/api/uploads", uploadRoute);
 app.use("/api/users", userRoute);
+app.use("/api/mark", markRoute);
+app.use("/api/all-uploads", allUploadsRoute);
 
 app.listen(port, () => {
   console.log(`Server is started on port ${port}`);
