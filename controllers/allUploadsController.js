@@ -1,7 +1,7 @@
 const { AnswerSheet, MarkSheet } = require("../models/textModel");
 
-// @desc    Get all text
-// @route   GET /api/texts
+// @desc    Get all documents
+// @route   GET /api/viewGrade
 // @access  Public
 const getAllDocs = async (req, res) => {
   try {
@@ -22,4 +22,21 @@ const getAllDocs = async (req, res) => {
   }
 };
 
-module.exports = { getAllDocs };
+// @desc    Delete specific text
+// @route   DELETE /api/viewGrade/:doc/:id
+// @access  Public
+const deleteDoc = async (req, res) => {
+  const { doc, id } = req.params;
+  const file =
+    (await doc) === "answerSheet"
+      ? AnswerSheet.findById(id)
+      : MarkSheet.findById(id);
+  if (!file) {
+    res.status(400);
+    throw new Error("Doc not found");
+  }
+  file.remove();
+  res.status(200).json({ message: `Deleted doc ${id}` });
+};
+
+module.exports = { getAllDocs, deleteDoc };
