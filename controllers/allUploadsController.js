@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { AnswerSheet, MarkSheet } = require("../models/textModel");
 
 // @desc    Get all documents
@@ -6,8 +7,8 @@ const { AnswerSheet, MarkSheet } = require("../models/textModel");
 const getAllDocs = async (req, res) => {
   try {
     // extract all documents from DB
-    const answerDoc = await AnswerSheet.find({}, { page: { fileName: 1 } });
-    const markDoc = await MarkSheet.find({}, { page: { fileName: 1 } });
+    let answerDoc = await AnswerSheet.find({}, { page: { fileName: 1 } });
+    let markDoc = await MarkSheet.find({}, { page: { fileName: 1 } });
 
     // const doc = await AnswerSheet.find(
     //   { user: req.user.id },
@@ -15,7 +16,30 @@ const getAllDocs = async (req, res) => {
     // );
 
     // ! Check if answerDoc and markDoc are non-empty in DB
-    // if(!answerDoc) answerDoc = ['no']
+    if (!answerDoc)
+      answerDoc = [
+        {
+          page: {
+            rawText: [],
+            fileName: "empty document",
+            textByNumber: [],
+          },
+          _id: "h3re1sn0th1ngh3ret0s3eb8",
+        },
+      ];
+    if (!markDoc.length)
+      markDoc = [
+        {
+          page: {
+            rawText: [],
+            fileName: "empty document",
+            textByNumber: [],
+          },
+          _id: "th3re1sn0th1ngh3ret0s3eb8",
+        },
+      ];
+    console.log("answerDoc: ", answerDoc);
+    console.log("markDoc: ", markDoc);
     res.send({ answerDoc, markDoc });
   } catch (err) {
     console.log(err.stack);
@@ -27,15 +51,14 @@ const getAllDocs = async (req, res) => {
 // @access  Public
 const deleteDoc = async (req, res) => {
   const { doc, id } = req.params;
-  const file =
-    (await doc) === "answerSheet"
-      ? AnswerSheet.findById(id)
-      : MarkSheet.findById(id);
-  if (!file) {
+  const deleteStatus =
+    doc === "answerSheet"
+      ? await AnswerSheet.findByIdAndDelete(id)
+      : await MarkSheet.findByIdAndDelete(id);
+  if (!deleteStatus) {
     res.status(400);
     throw new Error("Doc not found");
   }
-  file.remove();
   res.status(200).json({ message: `Deleted doc ${id}` });
 };
 
