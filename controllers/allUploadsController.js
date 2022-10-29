@@ -38,8 +38,6 @@ const getAllDocs = async (req, res) => {
           _id: "th3re1sn0th1ngh3ret0s3eb8",
         },
       ];
-    console.log("answerDoc: ", answerDoc);
-    console.log("markDoc: ", markDoc);
     res.send({ answerDoc, markDoc });
   } catch (err) {
     console.log(err.stack);
