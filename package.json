@@ -24,7 +24,6 @@
     "synonyms": "^1.0.1"
   },
   "scripts": {
-    "test": "standard && node test.js",
     "start": "nodemon app.js"
   },
   "repository": {
