@@ -75,13 +75,14 @@ const grader = async (doc1, doc2) => {
           });
         });
       }
-      // ! Leniency computation - logic for adding extra 'benevolent' marks
-      // if (grade > Math.round(pointsAwardable / 2) - leniencyScore) {
-      //   score = Math.round(grade + (grade / pointsAwardable));
-      // }
-      // if (grade < Math.round(pointsAwardable / 2) - leniencyScore) {
-      //   score = grade + leniencyScore;
-      // }
+      // if students got more than half of the keywords in a particular answer, award such student full marks
+      if (grade > Math.round(pointsAwardable / 2)) {
+        score = pointsAwardable;
+      } else {
+        // !TO-DO: be lenient i.e. add extra benevolent marks based on range of keywords
+        //! e.g. student got 40% of expected keywords, add 2 marks to score
+        // score = grade + leniencyScore;
+      }
       score = grade; // score for a particular question
       totalScore += +score; // total score for all questions in a page
 
