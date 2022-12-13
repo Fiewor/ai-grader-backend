@@ -1,5 +1,0 @@
-//! TODO: change this navigation to rememeber the route the user intended to go to originally
-
-//! and return them there after successful login
-
-//! and return them there after successful registration
