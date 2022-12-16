@@ -4,8 +4,6 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
-const fs = require("fs");
-const fsPromises = fs.promises;
 const path = require("path");
 const { errorHandler } = require("./middleware/errorMiddleware");
 const connectDB = require("./config/db");
@@ -31,13 +29,13 @@ app.use((req, res, next) => {
   next();
 });
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "build")));
+// if (process.env.NODE_ENV === "production") {
+//   app.use(express.static(path.join(__dirname, "build")));
 
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(__dirname, "build", "index.html"));
-  });
-}
+//   app.get("/*", (req, res) => {
+//     res.sendFile(path.join(__dirname, "build", "index.html"));
+//   });
+// }
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
