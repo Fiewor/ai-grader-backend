@@ -1,7 +1,6 @@
 // grading.js
 
-// const { answerSheet, markSheet } = require("../dummyData");
-const synonyms = require("synonyms");
+// const { answerSheet, markSheet } = require("../dummyData"); <- for testing
 
 const grader = async (doc1, doc2) => {
   let doc1Details = await doc1.page.textByNumber;
@@ -12,91 +11,66 @@ const grader = async (doc1, doc2) => {
     pointsAwardable,
     arr = [],
     id,
-    score,
-    leniencyScore = 1;
+    score;
 
-  for (const block1 of doc1Details) {
-    for (const block2 of doc2Details) {
-      console.log("block2 ", block2.phrases.length);
-      // check that id is the same
-      // so, keyPhrase for question 1 is only compared with keyPhrase for answer 1
-      // if (block1.id === block2.id) {
-      let grade = 0;
-      // if points/marks are specified at the end of the marking guide,
-      // then use those as the maximum mark attainable for that question's answer,
-      // if not use the length i.e number of keyphrases present in the particular answer
-      let pointsCheck = /\(\d+[ ]?((mark)|(point)s?)/.exec(block2.text);
+  let i = 0;
 
-      if (pointsCheck) {
-        pointsAwardable = pointsCheck[0]
-          .split("")
-          .filter((char) => !isNaN(char))
-          .join("");
-      } else {
-        console.log("length of block: ", block2.phrases.length);
-        pointsAwardable = block2.phrases.length;
-      }
+  while (i < doc2Details.length) {
+    let block1 = doc1Details[i],
+      block2 = doc2Details[i];
+    // check that id is the same
+    // so, keyPhrase for question 1 is only compared with keyPhrase for answer 1
 
-      totalPointsAwardable += +pointsAwardable;
-      console.log("pointsAwardable: ", pointsAwardable);
-      // every keyphrase in the student's sheet for a particular question is present in the marking guide answer for that question
-      if (block1.phrases.every((phrase) => block2.phrases.includes(phrase))) {
-        grade = pointsAwardable; // award full marks for that question
-      } else {
-        block1.phrases.forEach((answerPhrase) => {
-          block2.phrases.forEach((markingGuidePhrase) => {
-            if (answerPhrase === markingGuidePhrase) {
-              grade++;
-            }
-            // ! Logic for comparing keywords to synonyms
-            // else {
-            //   // check if the student's answer (keyword) is a synonym to a marking guide (keyword) answer
-            //   let synonymObject = synonyms(answerPhrase);
-            //   if (synonymObject) {
-            //     if (synonymObject.v) {
-            //       for (let word of synonymObject.v) {
-            //         if (word === markingGuidePhrase) grade++;
-            //       }
-            //     }
-            //     if (synonymObject.r) {
-            //       for (let word of synonymObject.r) {
-            //         if (word === markingGuidePhrase) grade++;
-            //       }
-            //     }
-            //     if (synonymObject.n) {
-            //       for (let word of synonymObject.n) {
-            //         if (word === markingGuidePhrase) grade++;
-            //       }
-            //     }
-            //   } else {
-            //     console.log(`No synonym found for keyword`);
-            //   }
-            // }
-          });
-        });
-      }
-      // if students got more than half of the keywords in a particular answer, award such student full marks
-      if (grade > Math.round(pointsAwardable / 2)) {
-        score = pointsAwardable;
-      } else {
-        // !TO-DO: be lenient i.e. add extra benevolent marks based on range of keywords
-        //! e.g. student got 40% of expected keywords, add 2 marks to score
-        // score = grade + leniencyScore;
-      }
-      score = grade; // score for a particular question
-      totalScore += +score; // total score for all questions in a page
-
-      id = block1.id;
-      console.log(
-        `Score for question ${block1.id}: ${score}/${pointsAwardable}`
-      );
-      arr.push({
-        id,
-        score,
-        pointsAwardable,
-      });
-      // }
+    // if (block1.id === block2.id) {
+    let grade = 0;
+    // if points/marks are specified at the end of the answer in marking guide, use as the maximum mark attainable for that question
+    // if not use the phrases length i.e number of keyphrases present in the particular answer
+    let pointsCheck = /\(\d+[ ]?((mark)|(point)s?)/.exec(block2.text);
+    console.log("pointsCheck: ", pointsCheck);
+    if (pointsCheck) {
+      pointsAwardable = pointsCheck[0]
+        .split("")
+        .filter((char) => !isNaN(char))
+        .join("");
+    } else {
+      console.log("length of block: ", block2.phrases.length);
+      pointsAwardable = block2.phrases.length;
     }
+
+    totalPointsAwardable += +pointsAwardable;
+
+    // every keyphrase in the student's sheet for a particular question is present in the marking guide answer for that question
+    if (block1.phrases.every((phrase) => block2.phrases.includes(phrase))) {
+      grade = pointsAwardable; // award full marks for that question
+    } else {
+      block1.phrases.forEach((answerPhrase) => {
+        block2.phrases.forEach((markingGuidePhrase) => {
+          if (answerPhrase === markingGuidePhrase) grade++;
+        });
+      });
+    }
+    // if students got more than half of the keywords in a particular answer, award such student full marks
+    if (grade > Math.floor(pointsAwardable / 2)) {
+      score = pointsAwardable;
+    } else {
+      // !TO-DO: be lenient i.e. add extra benevolent marks based on range of keywords
+      //! e.g. student got 40% of expected keywords, add 2 marks to score
+      // score = grade + leniencyScore;
+    }
+    score = grade; // score for a particular question
+    totalScore += +score; // total score for all questions in a page
+
+    // ! incremement original id by 1 before assigning to id
+    // ! this is to transofrm orignal 0-index to normal 1-indexing
+    // id = ++block1.id;
+    id = i;
+    console.log(`Score for question ${block1.id}: ${score}/${pointsAwardable}`);
+    arr.push({
+      id,
+      score,
+      pointsAwardable,
+    });
+    i++;
   }
 
   console.log(
