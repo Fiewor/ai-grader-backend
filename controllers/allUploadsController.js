@@ -14,30 +14,19 @@ const getAllDocs = async (req, res) => {
     //   { user: req.user.id },
     //   { page: { fileName: 1 } } //projection
     // );
-
+    let dummyDoc = [
+      {
+        page: {
+          rawText: [],
+          fileName: "empty document",
+          textByNumber: [],
+        },
+        _id: new mongoose.Types.ObjectId("61d634706a98a61edd42bf45"),
+      },
+    ];
     // ! Check if answerDoc and markDoc are non-empty in DB
-    if (!answerDoc)
-      answerDoc = [
-        {
-          page: {
-            rawText: [],
-            fileName: "empty document",
-            textByNumber: [],
-          },
-          _id: "h3re1sn0th1ngh3ret0s3eb8",
-        },
-      ];
-    if (!markDoc.length)
-      markDoc = [
-        {
-          page: {
-            rawText: [],
-            fileName: "empty document",
-            textByNumber: [],
-          },
-          _id: "th3re1sn0th1ngh3ret0s3eb8",
-        },
-      ];
+    if (!answerDoc.length) answerDoc = dummyDoc;
+    if (!markDoc.length) markDoc = dummyDoc;
     res.send({ answerDoc, markDoc });
   } catch (err) {
     console.log(err.stack);
