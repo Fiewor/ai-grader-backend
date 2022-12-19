@@ -19,12 +19,12 @@
     "express-fileupload": "^1.4.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.12",
-    "nodemon": "^2.0.14",
     "react-scripts": "^4.0.3",
     "synonyms": "^1.0.1"
   },
   "scripts": {
-    "start": "node app.js"
+    "start": "node --watch app.js",
+    "dev": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -45,5 +45,8 @@
     "machine learning",
     "ai",
     "azure-ai"
-  ]
+  ],
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
 }
