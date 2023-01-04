@@ -23,7 +23,7 @@
     "synonyms": "^1.0.1"
   },
   "scripts": {
-    "start": "node --watch app.js",
+    "start": "node app.js",
     "dev": "nodemon app.js"
   },
   "repository": {
