@@ -4,9 +4,18 @@ const uri =
     ? process.env.MONGODB_URI
     : `mongodb://localhost:27017/textExtract`;
 
+const options = {
+  useNewUrlParser: true,
+  reconnectTries: 60,
+  reconnectInterval: 2000,
+  serverSelectionTimeoutMS: 5000,
+};
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(uri);
+    // const conn = await mongoose.connect(uri, options);
+    const conn = await mongoose.connect(
+      "mongodb+srv://john:fiewor@cluster0.crs9nx1.mongodb.net/?retryWrites=true&w=majority"
+    );
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
