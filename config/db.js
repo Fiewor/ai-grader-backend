@@ -6,15 +6,15 @@ const uri =
 
 const options = {
   useNewUrlParser: true,
-  reconnectTries: 60,
-  reconnectInterval: 2000,
+  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
 };
 const connectDB = async () => {
   try {
     // const conn = await mongoose.connect(uri, options);
     const conn = await mongoose.connect(
-      "mongodb+srv://john:fiewor@cluster0.crs9nx1.mongodb.net/?retryWrites=true&w=majority"
+      "mongodb+srv://john:fiewor@cluster0.crs9nx1.mongodb.net/?retryWrites=true&w=majority",
+      options
     );
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
