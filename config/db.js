@@ -11,11 +11,7 @@ const options = {
 };
 const connectDB = async () => {
   try {
-    // const conn = await mongoose.connect(uri, options);
-    const conn = await mongoose.connect(
-      "mongodb+srv://john:fiewor@cluster0.crs9nx1.mongodb.net/?retryWrites=true&w=majority",
-      options
-    );
+    const conn = await mongoose.connect(uri, options);
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
