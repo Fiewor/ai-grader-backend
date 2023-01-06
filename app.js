@@ -1,5 +1,7 @@
 "use strict";
 
+require("dotenv").config();
+// require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -9,7 +11,6 @@ const { errorHandler } = require("./middleware/errorMiddleware");
 const connectDB = require("./config/db");
 
 const port = process.env.PORT || 3001;
-require("dotenv").config();
 
 const gradeRoute = require(`./routes/gradeRoute`);
 const textRoute = require(`./routes/textRoute`);
