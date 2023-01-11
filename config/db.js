@@ -5,10 +5,13 @@ const options = {
   useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
 };
-
+const uri =
+  process.env.NODE_ENV === "production"
+    ? process.env.MONGODB_URI
+    : process.env.MONGODB_URI_LOCAL;
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, options);
+    const conn = await mongoose.connect(uri, options);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.log(error);
