@@ -6,8 +6,8 @@ import {
   uploadText,
 } from "../controllers/uploadController";
 
-router.post(`/mark`, uploadMark);
-router.post(`/answer`, uploadAnswer);
-router.post(`/text`, uploadText);
+router.post("/mark", uploadMark);
+router.post("/answer", uploadAnswer);
+router.post("/text", uploadText);
 
-module.exports = router;
+export default router;

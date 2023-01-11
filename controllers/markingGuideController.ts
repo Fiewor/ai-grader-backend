@@ -3,7 +3,7 @@ const { MarkSheet } = require("../models/textModel");
 // @desc    Get all text
 // @route   GET /api/texts
 // @access  Public
-const getAllGuides = async (req, res) => {
+export const getAllGuides = async (req, res) => {
   try {
     // extract all documents from DB
     const doc = await MarkSheet.find({}, { page: { fileName: 1 } });
@@ -17,7 +17,7 @@ const getAllGuides = async (req, res) => {
 // @desc    Get text with Id
 // @route   GET /api/texts/:id
 // @access  Public
-const getGuidesWithId = async (req, res) => {
+export const getGuidesWithId = async (req, res) => {
   let { id } = req.params;
   try {
     const doc = await MarkSheet.findById(id);
@@ -27,5 +27,3 @@ const getGuidesWithId = async (req, res) => {
     console.log(err);
   }
 };
-
-module.exports = { getAllGuides, getGuidesWithId };

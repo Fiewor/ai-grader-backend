@@ -1,10 +1,9 @@
 import express from "express";
 const router = express.Router();
 
-const { getAllText, getTextWithId } = require("../controllers/textController");
+import { getAllText, getTextWithId } from "../controllers/textController";
 
-router.get(`/`, getAllText);
+router.get("/", getAllText);
+router.get("/:id", getTextWithId);
 
-router.get(`/:id`, getTextWithId);
-
-module.exports = router;
+export default router;

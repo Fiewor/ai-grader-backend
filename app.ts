@@ -1,23 +1,22 @@
 "use strict";
 
 require("dotenv").config();
-// require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const path = require("path");
 const { errorHandler } = require("./middleware/errorMiddleware");
-const connectDB = require("./config/db");
+import connectDB from "./config/db";
 
 const port = process.env.PORT || 3001;
 
-const gradeRoute = require(`./routes/gradeRoute`);
-const textRoute = require(`./routes/textRoute`);
-const uploadRoute = require(`./routes/uploadRoute`);
-const userRoute = require(`./routes/userRoute`);
-const markRoute = require(`./routes/markRoute`);
-const allUploadsRoute = require(`./routes/allUploadsRoute`);
+import gradeRoute from "./routes/gradeRoute";
+import textRoute from "./routes/textRoute";
+import uploadRoute from "./routes/uploadRoute";
+import userRoute from "./routes/userRoute";
+import markRoute from "./routes/markRoute";
+import allUploadsRoute from "./routes/allUploadsRoute";
 
 connectDB();
 
@@ -29,14 +28,6 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", ["*"]);
   next();
 });
-
-// if (process.env.NODE_ENV === "production") {
-//   app.use(express.static(path.join(__dirname, "build")));
-
-//   app.get("/*", (req, res) => {
-//     res.sendFile(path.join(__dirname, "build", "index.html"));
-//   });
-// }
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

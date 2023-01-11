@@ -1,11 +1,11 @@
 import express from "express";
 const router = express.Router();
-const {
+import {
   getAllGuides,
   getGuidesWithId,
-} = require("../controllers/markingGuideController");
+} from "../controllers/markingGuideController";
 
 router.get("/", getAllGuides);
-router.get(`/:id`, getGuidesWithId);
+router.get("/:id", getGuidesWithId);
 
-module.exports = router;
+export default router;

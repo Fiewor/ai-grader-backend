@@ -4,6 +4,6 @@ import getGrades from "../controllers/gradeController";
 const { protect } = require("../middleware/authMiddleware");
 
 // router.get("/", protect, getGrades);
-router.get(`/`, getGrades);
+router.get("/", getGrades);
 
-module.exports = router;
+export default router;
