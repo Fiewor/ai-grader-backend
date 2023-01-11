@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const options = {
   useNewUrlParser: true,
@@ -10,9 +10,9 @@ const uri =
     ? process.env.MONGODB_URI
     : process.env.MONGODB_URI_LOCAL;
 
-const connectDB = async (): Promise<void> => {
+const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(uri || "", options);
+    const conn = await mongoose.connect(uri, options);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.log(error);
@@ -20,4 +20,4 @@ const connectDB = async (): Promise<void> => {
   }
 };
 
-export default connectDB;
+module.exports = connectDB;
