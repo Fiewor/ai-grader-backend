@@ -4,7 +4,7 @@ const { AnswerSheet, MarkSheet } = require("../models/textModel");
 // @desc    Get all documents
 // @route   GET /api/viewGrade
 // @access  Public
-const getAllDocs = async (req, res) => {
+export const getAllDocs = async (req, res) => {
   try {
     // extract all documents from DB
     let answerDoc = await AnswerSheet.find({}, { page: { fileName: 1 } });
@@ -29,14 +29,14 @@ const getAllDocs = async (req, res) => {
     if (!markDoc.length) markDoc = dummyDoc;
     res.send({ answerDoc, markDoc });
   } catch (err) {
-    console.log(err.stack);
+    console.log(err);
   }
 };
 
 // @desc    Delete specific text
 // @route   DELETE /api/viewGrade/:doc/:id
 // @access  Public
-const deleteDoc = async (req, res) => {
+export const deleteDoc = async (req, res) => {
   const { doc, id } = req.params;
   const deleteStatus =
     doc === "answerSheet"
@@ -48,5 +48,3 @@ const deleteDoc = async (req, res) => {
   }
   res.status(200).json({ message: `Deleted doc ${id}` });
 };
-
-module.exports = { getAllDocs, deleteDoc };
