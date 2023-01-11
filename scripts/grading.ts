@@ -1,10 +1,18 @@
-// grading.js
+// import { answerSheet, markSheet } from "../dummyData"; //<- for testing
 
-// const { answerSheet, markSheet } = require("../dummyData"); <- for testing
+interface Document {
+  page: {
+    textByNumber: {
+      id: number | 0;
+      text: string | "";
+      phrases: string[];
+    }[];
+  };
+}
 
-const grader = async (doc1, doc2) => {
-  let doc1Details = await doc1.page.textByNumber;
-  let doc2Details = await doc2.page.textByNumber;
+const grader = async (doc1: Document, doc2: Document) => {
+  let doc1Details = doc1["page"]["textByNumber"];
+  let doc2Details = doc2["page"]["textByNumber"];
 
   let totalScore: number = 0,
     totalPointsAwardable: number = 0,
@@ -22,10 +30,10 @@ const grader = async (doc1, doc2) => {
   while (i < doc2Details.length) {
     let block1 = doc1Details[i],
       block2 = doc2Details[i];
-    // check that id is the same
-    // so, keyPhrase for question 1 is only compared with keyPhrase for answer 1
 
+    //! TO-DO: add logic that checks that id is the same so that keyPhrase for question 1 is only compared with keyPhrase for answer 1
     // if (block1.id === block2.id) {
+
     let grade = 0;
     // if points/marks are specified at the end of the answer in marking guide, use as the maximum mark attainable for that question
     // if not use the phrases length i.e number of keyphrases present in the particular answer
@@ -37,22 +45,38 @@ const grader = async (doc1, doc2) => {
         .filter((char) => !isNaN(+char))
         .join("") as unknown as number;
     } else {
-      console.log("length of block: ", block2.phrases.length);
       pointsAwardable = block2.phrases.length;
     }
 
     totalPointsAwardable += +pointsAwardable;
 
-    // every keyphrase in the student's sheet for a particular question is present in the marking guide answer for that question
-    if (block1.phrases.every((phrase) => block2.phrases.includes(phrase))) {
-      grade = pointsAwardable; // award full marks for that question
-    } else {
-      block1.phrases.forEach((answerPhrase) => {
-        block2.phrases.forEach((markingGuidePhrase) => {
-          if (answerPhrase === markingGuidePhrase) grade++;
+    if (block1.phrases.length && block2.phrases.length) {
+      // every keyphrase in the student's sheet for a particular question is present in the marking guide answer for that question
+      if (block1.phrases.every((phrase) => block2.phrases.includes(phrase))) {
+        grade = pointsAwardable; // award full marks for that question
+      } else {
+        block1.phrases.forEach((answerPhrase) => {
+          block2.phrases.forEach((markingGuidePhrase) => {
+            if (answerPhrase === markingGuidePhrase) grade++;
+          });
         });
-      });
+      }
     }
+    // student did not answer that question
+    if (block2.phrases.length && !block1.phrases.length) {
+      grade = 0;
+    }
+    // lecturer somehow has no keyphrases for that answer // <- maybe AI didn't identify text due to illegible handwriting or keyphrase extraction API had an issue
+    if (block1.phrases.length && !block2.phrases.length) {
+      //! TO-DO: notify lecturer before hand that there was no keyphrase identified in a particular answer
+      // * fix(temp): give student perfect score
+      grade = pointsAwardable;
+    }
+    // no keyphrase from both student and lecturer
+    if (!block1.phrases.length && !block2.phrases.length) {
+      grade = 0;
+    }
+
     // if students got more than half of the keywords in a particular answer, award such student full marks
     if (grade > Math.floor(pointsAwardable / 2)) {
       score = pointsAwardable;
@@ -82,5 +106,5 @@ const grader = async (doc1, doc2) => {
   );
   return { arr, totalScore, totalPointsAwardable };
 };
-
+// console.log(grader(answerSheet, markSheet));
 export default grader;
