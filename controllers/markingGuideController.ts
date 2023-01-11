@@ -10,7 +10,7 @@ const getAllGuides = async (req, res) => {
 
     !doc ? res.send(["Empty"]) : res.send(doc);
   } catch (err) {
-    console.log(err.stack);
+    console.log(err);
   }
 };
 
@@ -24,7 +24,7 @@ const getGuidesWithId = async (req, res) => {
 
     res.send(doc);
   } catch (err) {
-    console.log(err.stack);
+    console.log(err);
   }
 };
 
