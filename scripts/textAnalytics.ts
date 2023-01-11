@@ -1,13 +1,13 @@
 const ComputerVisionClient =
   require("@azure/cognitiveservices-computervision").ComputerVisionClient;
-const {
+import {
   TextAnalyticsClient,
   AzureKeyCredential,
-} = require("@azure/ai-text-analytics");
-const key = process.env.API_KEY;
-const endpoint = process.env.API_ENDPOINT;
-const text_key = process.env.TEXT_KEY;
-const text_endpoint = process.env.TEXT_ENDPOINT;
+} from "@azure/ai-text-analytics";
+const key = process.env.API_KEY || "";
+const endpoint = process.env.API_ENDPOINT || "";
+const text_key = process.env.TEXT_KEY || "";
+const text_endpoint = process.env.TEXT_ENDPOINT || "";
 const textAnalyticsClient = new TextAnalyticsClient(
   text_endpoint,
   new AzureKeyCredential(text_key)
@@ -17,13 +17,13 @@ const computerVisionClient = new ComputerVisionClient(
   new ApiKeyCredentials({ inHeader: { "Ocp-Apim-Subscription-Key": key } }),
   endpoint
 );
-const fs = require("fs");
+import fs from "fs";
 const fsPromises = fs.promises;
 const sleep = require("util").promisify(setTimeout);
 import joinSame from "./joinSame";
 
 // function to extract identifiable text from image. takes image path as argument
-const getTextFromImage = async (
+export const getTextFromImage = async (
   imagePath: string
 ): Promise<{
   textArray: string[];
@@ -83,7 +83,7 @@ const getTextFromImage = async (
 };
 
 // function to extract key phrases from provided text string
-const keyPhraseExtraction = async (
+export const keyPhraseExtraction = async (
   keyPhrasesInput: string[]
 ): Promise<string[]> => {
   let extracted: string[] = [];
@@ -101,10 +101,10 @@ const keyPhraseExtraction = async (
       for (const document of keyPhraseResult) {
         // ! only push documents with identified keyphrases
         // ! this behaviour may be changed later
-        if (document.keyPhrases.length !== 0) {
+        if (document["keyPhrases"].length !== 0) {
           console.log(`ID: ${document.id}`);
-          console.log(`\tDocument Key Phrases: ${document.keyPhrases}`);
-          extracted.push(document.keyPhrases);
+          console.log(`\tDocument Key Phrases: ${document["keyPhrases"]}`);
+          extracted.push(document["keyPhrases"]);
         }
       }
     }
@@ -112,9 +112,4 @@ const keyPhraseExtraction = async (
     console.log(e);
   }
   return extracted;
-};
-
-module.exports = {
-  getTextFromImage,
-  keyPhraseExtraction,
 };
