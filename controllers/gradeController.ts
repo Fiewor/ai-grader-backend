@@ -12,9 +12,7 @@ const getGrades = async (req, res) => {
     const answerDoc = await AnswerSheet.findById(answerId);
     const markDoc = await MarkSheet.findById(markId);
     if (answerDoc) {
-      console.log("got to answerDoc");
       if (markDoc) {
-        console.log("got to markDoc");
         const gradeForPage = await grader(answerDoc, markDoc);
         const {
           arr,
@@ -27,11 +25,13 @@ const getGrades = async (req, res) => {
           totalPoints: total,
         });
       } else {
+        //! TO-DO: res.send this to frontend
         console.log(
           "Couldn't find mark document in database. Did you upload a marking guide?"
         );
       }
     } else {
+      //! TO-DO: res.send this to frontend
       console.log(
         "Couldn't find answer document in database. Did you upload an answer sheet?"
       );

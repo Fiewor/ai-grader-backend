@@ -68,7 +68,7 @@ const grader = async (doc1: Document, doc2: Document) => {
     }
     // lecturer somehow has no keyphrases for that answer // <- maybe AI didn't identify text due to illegible handwriting or keyphrase extraction API had an issue
     if (block1.phrases.length && !block2.phrases.length) {
-      //! TO-DO: notify lecturer before hand that there was no keyphrase identified in a particular answer
+      //! TO-DO: notify lecturer beforehand that there was no keyphrase identified in a particular answer
       // * fix(temp): give student perfect score
       grade = pointsAwardable;
     }

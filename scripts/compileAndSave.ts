@@ -14,7 +14,6 @@ export const textAndPhraseCompile = async (path: string) => {
   let segmentArray: TextSegment[] = [];
 
   for (const line of joinedArray) {
-    console.log("line: ", line);
     let currentPhrase = await keyPhraseExtraction([line]);
 
     let textSegment: TextSegment = {
@@ -41,7 +40,6 @@ export const compileAndSave = async (
 ) => {
   let { segmentArray, textArray: rawText } = await textAndPhraseCompile(path);
   let saveStatus = false;
-  console.log("segmentArray", segmentArray);
 
   if (
     segmentArray === undefined ||
@@ -66,7 +64,7 @@ export const compileAndSave = async (
       } else {
         throw new Error("An error occured while attempting to save document");
       }
-      // add the type for a failed mongoDB error
+      //! To-DO: add the type for a failed mongoDB error
     } catch (err) {
       console.log(err);
     }

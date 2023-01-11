@@ -65,6 +65,7 @@ export const uploadAnswer = async (req, res) => {
       AnswerSheet
     );
   } else {
+    //! TO-DO: return this so it can be res.send this to frontend
     console.log("An error occured while attempting to upload file");
   }
 };
@@ -100,7 +101,6 @@ const postHandler = async (
   req: { files: { [s: string]: any } | ArrayLike<any> },
   folder: string
 ): Promise<Upload | undefined> => {
-  console.log("req: ", req);
   for (let file of Object.values(req.files)) {
     let fileStream = Readable.from(file.data);
 
@@ -122,7 +122,6 @@ const postHandler = async (
       });
 
       await upload.done();
-      console.log("upload data: ", data);
       return data; // For unit tests.
     } catch (err) {
       console.log(err);
