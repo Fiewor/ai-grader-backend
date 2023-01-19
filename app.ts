@@ -7,7 +7,7 @@ const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const path = require("path");
 const { errorHandler } = require("./middleware/errorMiddleware");
-import connectDB from "./config/db";
+const connectDB = require("./config/db");
 
 const port = process.env.PORT || 3001;
 
